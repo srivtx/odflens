@@ -2,6 +2,8 @@
 
 # odflens
 
+> Check OpenDocument files. Skip LibreOffice.
+
 **Offline accessibility audit for OpenDocument files (ODT / ODS / ODP).**
 
 [![CI](https://github.com/srivtx/odflens/actions/workflows/ci.yml/badge.svg)](https://github.com/srivtx/odflens/actions/workflows/ci.yml)
@@ -59,6 +61,25 @@ effectively **no accessibility tooling**.
 LibreOffice, no Java, and no GUI.
 
 ## Install
+
+`odflens` is not published to npm. Install it from GitHub with the one-line script (requires [Bun](https://bun.sh)):
+
+```bash
+# One-line install (installs the `odflens` binary)
+curl -fsSL https://raw.githubusercontent.com/srivtx/odflens/main/install.sh | sh
+
+# Or run once, without installing
+bunx github:srivtx/odflens report.odt
+
+# Install globally
+bun add -g github:srivtx/odflens
+odflens report.odt
+
+# Add to a project as a dev dependency
+bun add -d github:srivtx/odflens
+```
+
+## Development
 
 ```bash
 bun install
