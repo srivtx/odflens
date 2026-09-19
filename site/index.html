@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>odflens — OpenDocument accessibility audit</title>
-<meta name="description" content="odflens audits OpenDocument accessibility for ODT, ODS, and ODP files. Offline, namespace-aware static checks, SARIF output, no LibreOffice or Java required.">
+<meta name="description" content="odflens audits the accessibility of OpenDocument files (ODT, ODS, ODP). It runs offline on Bun and can emit text, JSON, or SARIF 2.1.0.">
 <meta name="theme-color" content="#0c0a14">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="odflens — OpenDocument accessibility audit">
-<meta property="og:description" content="Offline accessibility audit for OpenDocument files (ODT / ODS / ODP) — no LibreOffice, no Java, no GUI, no network.">
+<meta property="og:description" content="Offline accessibility audit for OpenDocument files (ODT, ODS, ODP), written in TypeScript and run on Bun.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://odflens-srivtx.vercel.app">
 <link rel="icon" href="data:,">
@@ -77,124 +77,69 @@
       <span class="aurora-layer aurora-b"></span>
     </div>
     <div class="wrap hero-inner">
-      <p class="hero-badge"><span class="hero-badge-dot" aria-hidden="true"></span>Open standards laboratory · ODF 1.2 / 1.3</p>
       <h1 class="display" id="hero-title">odflens</h1>
-      <p class="lede">Offline accessibility audit for OpenDocument files — ODT, ODS, and ODP — parsed and checked locally with no LibreOffice, no Java, no GUI, and no network.</p>
-      <p class="subcopy">A namespace-aware static checker for the format that EU and public-sector publishing mandate under EN 301 549 and the Web Accessibility Directive. Point it at a file, a directory, or a CI job; it unzips the package, runs the rules, and reports JSON, text, or SARIF.</p>
-      <pre class="code install-chip"><code>bun add -d odflens</code></pre>
+      <p class="lede">odflens is an offline accessibility auditor for OpenDocument files: text documents (<code>.odt</code>), spreadsheets (<code>.ods</code>), and presentations (<code>.odp</code>). It unzips the ODF package, parses the XML, and reports issues without rendering the document.</p>
+      <p class="subcopy">The package is written in TypeScript and runs on Bun, in a terminal or a CI job, with no LibreOffice or Java. It understands the ODF 1.2 and 1.3 namespaces and can emit text, JSON, or SARIF 2.1.0. odflens is MIT licensed, and it is not published to npm. Install it with the one-line script, or run it without installing.</p>
       <div class="actions">
         <a class="btn btn-primary shimmer" href="#playground">Audit a document</a>
         <a class="btn btn-ghost" href="https://github.com/srivtx/odflens">View source</a>
       </div>
-      <ul class="trust-row" aria-label="Properties">
-        <li class="trust-item">no network</li>
-        <li class="trust-item">MIT licensed</li>
-        <li class="trust-item">Bun + TypeScript</li>
-        <li class="trust-item">SARIF 2.1.0</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="stat-band" aria-label="At a glance">
-    <div class="wrap stat-grid">
-      <div class="stat"><span class="stat-value">08</span><span class="stat-label">audited rules</span></div>
-      <div class="stat"><span class="stat-value">03</span><span class="stat-label">ODF formats</span></div>
-      <div class="stat"><span class="stat-value">00</span><span class="stat-label">network calls</span></div>
-      <div class="stat"><span class="stat-value">2011</span><span class="stat-label">AccessODF last release</span></div>
     </div>
   </section>
 
   <section class="section" id="gap" aria-labelledby="gap-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 01</span>
-        <span class="section-label">The gap</span>
-      </div>
-      <h2 class="section-title" id="gap-title">A mandated format with almost no accessibility tooling</h2>
-      <div class="prose">
-        <p>OpenDocument is a mandated format across large parts of EU and public-sector publishing — and it has effectively no accessibility tooling. The incumbents either need a desktop suite, are abandoned, or check a different format entirely.</p>
-      </div>
+      <h2 class="section-title" id="gap-title">OpenDocument accessibility tooling today</h2>
+      <p class="lede">OpenDocument is required in much of EU and public-sector publishing under EN 301 549 and the Web Accessibility Directive, but there is almost no tooling that checks its accessibility.</p>
       <div class="grid grid-3">
         <article class="card lift gap-card">
-          <span class="card-index">incumbent 01</span>
           <h3>AccessODF</h3>
-          <p>The only real ODF accessibility checker — a LibreOffice GUI extension written in Java, at version 0.1.0 Beta, with its last file dated 2011-11-08. It needs a desktop office suite and cannot run headless.</p>
-          <ul class="card-meta">
-            <li>LibreOffice GUI extension</li>
-            <li>Java · 0.1.0 Beta</li>
-            <li>last file 2011-11-08</li>
-          </ul>
+          <p>The only ODF accessibility checker with a working release. It is a LibreOffice GUI extension written in Java, at version 0.1.0 Beta, with its last file dated 2011-11-08. It requires a desktop office suite and cannot run headless.</p>
         </article>
         <article class="card lift gap-card">
-          <span class="card-index">incumbent 02</span>
           <h3>ODFBetter / ODF_Accessibility_Tester</h3>
-          <p>Both abandoned, with no maintained release and nothing that runs in a modern CI pipeline.</p>
-          <ul class="card-meta">
-            <li>abandoned</li>
-            <li>no CI story</li>
-          </ul>
+          <p>Both are abandoned, with no maintained release and no way to run them in a CI pipeline.</p>
         </article>
         <article class="card lift gap-card">
-          <span class="card-index">incumbent 03</span>
           <h3><a href="https://github.com/BramAlkema/openxml-audit">openxml-audit</a></h3>
-          <p>Validates OpenDocument conformance — explicitly not accessibility. Different goal, different failure modes.</p>
-          <ul class="card-meta">
-            <li>conformance only</li>
-            <li>not an a11y checker</li>
-          </ul>
+          <p>Validates OpenDocument conformance only, not accessibility.</p>
         </article>
         <article class="card lift gap-card">
-          <span class="card-index">incumbent 04</span>
           <h3>OOXML tooling</h3>
-          <p>office-accessibility-checker, readrite, and filecap cover OOXML/XLSX, not ODF. None of them opens an .odt, .ods, or .odp package.</p>
-          <ul class="card-meta">
-            <li>DOCX / XLSX / PPTX</li>
-            <li>wrong format family</li>
-          </ul>
+          <p>office-accessibility-checker, readrite, and filecap cover OOXML and XLSX rather than ODF. None of them opens an <code>.odt</code>, <code>.ods</code>, or <code>.odp</code> package.</p>
         </article>
       </div>
       <div class="callout is-ok">
-        <span class="callout-title">The slot odflens fills</span>
-        <p>An offline, CI-invokable ODF accessibility auditor with no LibreOffice, no Java, and no GUI — the same rule engine in the terminal and in your browser.</p>
+        <p>odflens fills that gap with an offline ODF accessibility auditor that runs from a CI job without LibreOffice or Java, using the same rule engine in the terminal and in the browser.</p>
       </div>
     </div>
   </section>
 
   <section class="section" id="features" aria-labelledby="features-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 02</span>
-        <span class="section-label">Capabilities</span>
-      </div>
-      <h2 class="section-title" id="features-title">Built to run where the documents already are</h2>
+      <h2 class="section-title" id="features-title">What odflens does</h2>
       <div class="grid grid-3">
         <div class="card lift">
-          <span class="card-glyph" aria-hidden="true">OFF</span>
-          <h3>Offline by design</h3>
-          <p>No network code. Files are parsed locally and never uploaded — safe on air-gapped machines and in CI containers with egress blocked.</p>
+          <h3>Runs offline</h3>
+          <p>There is no network code. Files are parsed locally and never uploaded, so the tool works on air-gapped machines and in CI containers with egress blocked.</p>
         </div>
         <div class="card lift">
-          <span class="card-glyph" aria-hidden="true">NS</span>
-          <h3>Namespace-aware</h3>
-          <p>Matches namespaced keys (<code>text:h</code>, <code>draw:frame</code>, <code>svg:title</code>) so the rules read the same regardless of the prefix LibreOffice chose.</p>
+          <h3>Namespace-aware parsing</h3>
+          <p>Rules match namespaced keys (<code>text:h</code>, <code>draw:frame</code>, <code>svg:title</code>) so the result does not depend on the prefix LibreOffice chose.</p>
         </div>
         <div class="card lift">
-          <span class="card-glyph" aria-hidden="true">CLI</span>
-          <h3>CI-friendly CLI</h3>
-          <p>Audit files or directories, emit JSON or text, and gate the build with <code>--fail-on</code>.</p>
+          <h3>Command-line interface</h3>
+          <p>Audit files or directories, emit JSON or text, and set the failure threshold with <code>--fail-on</code>.</p>
         </div>
         <div class="card lift">
-          <span class="card-glyph" aria-hidden="true">SRF</span>
-          <h3>SARIF 2.1.0</h3>
+          <h3>SARIF 2.1.0 output</h3>
           <p>Each issue becomes a SARIF result, so findings show up as annotations in GitHub code scanning, VS Code, and other SARIF-aware viewers.</p>
         </div>
         <div class="card lift">
-          <span class="card-glyph" aria-hidden="true">LIB</span>
           <h3>Library API</h3>
           <p>Call <code>audit(bytes, name)</code> directly and get back <code>{ file, kind, issues, counts }</code>.</p>
         </div>
         <div class="card lift">
-          <span class="card-glyph" aria-hidden="true">KND</span>
           <h3>Kind detection</h3>
           <p>Detects ODT, ODS, and ODP from the package <code>mimetype</code>, then falls back to the body element.</p>
         </div>
@@ -204,11 +149,8 @@
 
   <section class="section" id="how" aria-labelledby="how-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 03</span>
-        <span class="section-label">Method</span>
-      </div>
       <h2 class="section-title" id="how-title">How it works</h2>
+      <p class="lede">The audit runs in four stages.</p>
       <ol class="steps">
         <li class="step">
           <h3>Open the package</h3>
@@ -224,7 +166,7 @@
         </li>
         <li class="step">
           <h3>Report</h3>
-          <p>Rules produce issues with a code, severity, WCAG mapping, and location — emitted as text, JSON, or SARIF 2.1.0.</p>
+          <p>Rules produce issues with a code, severity, WCAG mapping, and location, emitted as text, JSON, or SARIF 2.1.0.</p>
         </li>
       </ol>
       <div class="pane">
@@ -245,10 +187,6 @@
 
   <section class="section" id="rules" aria-labelledby="rules-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 04</span>
-        <span class="section-label">Rule set</span>
-      </div>
       <h2 class="section-title" id="rules-title">Rules</h2>
       <div class="table-wrap">
         <table class="rule-table">
@@ -281,27 +219,25 @@
 
   <section class="section" id="install" aria-labelledby="install-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 05</span>
-        <span class="section-label">Getting started</span>
-      </div>
       <h2 class="section-title" id="install-title">Install</h2>
-      <div class="prose">
-        <p>odflens is a Bun + TypeScript package. Add it to a project or run it ad hoc.</p>
-      </div>
-      <pre class="code"><code>bun add -d odflens
+      <p class="lede">odflens is a Bun and TypeScript package. It is not published to npm. Install it with the one-line script, or run it without installing.</p>
+      <pre class="code"><code># One-line install (installs the `odflens` binary)
+curl -fsSL https://raw.githubusercontent.com/srivtx/odflens/main/install.sh | sh
 
-# or run it without installing
-bunx odflens report.odt</code></pre>
+# Or run once, without installing
+bunx github:srivtx/odflens report.odt
+
+# Install globally
+bun add -g github:srivtx/odflens
+odflens report.odt
+
+# Add to a project as a dev dependency
+bun add -d github:srivtx/odflens</code></pre>
     </div>
   </section>
 
   <section class="section" id="usage" aria-labelledby="usage-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 06</span>
-        <span class="section-label">Interface</span>
-      </div>
       <h2 class="section-title" id="usage-title">CLI and library usage</h2>
       <pre class="code"><code># Audit one or more files
 odflens report.odt sheet.ods deck.odp
@@ -327,10 +263,6 @@ const result = audit(bytes, "report.odt");
 
   <section class="section" id="sarif" aria-labelledby="sarif-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 07</span>
-        <span class="section-label">Interop</span>
-      </div>
       <h2 class="section-title" id="sarif-title">SARIF and GitHub code scanning</h2>
       <div class="prose">
         <p>odflens emits SARIF 2.1.0, so results show up as annotations in GitHub code scanning, VS Code, and any other SARIF-aware viewer. Each issue becomes a result with <code>ruleId</code> set to the ODF rule code and a <code>level</code> mapped from its severity.</p>
@@ -350,33 +282,24 @@ const result = audit(bytes, "report.odt");
 
   <section class="section" id="limitations" aria-labelledby="limitations-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 08</span>
-        <span class="section-label">Scope</span>
-      </div>
       <h2 class="section-title" id="limitations-title">Limitations</h2>
-      <div class="callout is-warn">
-        <span class="callout-title">What it does not do</span>
-        <p>Static XML checks; it does not render or convert the document. ODS and ODP rule coverage is a subset of the ODT coverage. Remote images are flagged, not fetched — and there is no network code, so files are parsed locally and never uploaded.</p>
+      <div class="prose">
+        <p>odflens performs static XML checks and does not render or convert the document. ODS and ODP rule coverage is a subset of the ODT coverage. Remote images are flagged but never fetched, and there is no network code, so files are parsed locally and never uploaded.</p>
       </div>
     </div>
   </section>
 
   <section class="section" id="faq" aria-labelledby="faq-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 09</span>
-        <span class="section-label">Questions</span>
-      </div>
       <h2 class="section-title" id="faq-title">FAQ</h2>
       <div class="faq">
         <details class="faq-item">
           <summary class="faq-q">Does it need LibreOffice or Java?</summary>
-          <p class="faq-a">No. odflens is pure TypeScript: it unzips the package with fflate and parses the XML directly, so it runs headless on any machine that has Bun — including CI containers without an office suite.</p>
+          <p class="faq-a">No. odflens is pure TypeScript: it unzips the package with fflate and parses the XML directly, so it runs headless on any machine that has Bun, including CI containers without an office suite.</p>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Are my documents uploaded anywhere?</summary>
-          <p class="faq-a">No. There is no network code at all. The CLI parses files locally, and the browser playground uses the same bundle in-page — nothing leaves your machine.</p>
+          <p class="faq-a">No. There is no network code at all. The CLI parses files locally, and the browser playground uses the same bundle in-page, so nothing leaves your machine.</p>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Which formats are covered?</summary>
@@ -392,7 +315,7 @@ const result = audit(bytes, "report.odt");
         </details>
         <details class="faq-item">
           <summary class="faq-q">Does it render or convert documents?</summary>
-          <p class="faq-a">No. It is a static XML auditor — it checks structure, language, alt text, heading order, tables, and links, and reports issues. It never renders, converts, or fixes a file.</p>
+          <p class="faq-a">No. It is a static XML auditor: it checks structure, language, alt text, heading order, tables, and links, and reports issues. It never renders, converts, or fixes a file.</p>
         </details>
       </div>
     </div>
@@ -400,12 +323,8 @@ const result = audit(bytes, "report.odt");
 
   <section class="section playground" id="playground" aria-labelledby="playground-title">
     <div class="wrap">
-      <div class="section-head">
-        <span class="section-num" aria-hidden="true">§ 10</span>
-        <span class="section-label">Playground</span>
-      </div>
       <h2 class="section-title" id="playground-title">Try odflens</h2>
-      <p class="muted">Audit a real .odt, .ods, or .odp file right here. The audit runs entirely in your browser with the same rule engine as the CLI — nothing is uploaded.</p>
+      <p class="muted">Audit a real .odt, .ods, or .odp file right here. The audit runs entirely in your browser with the same rule engine as the CLI, and nothing is uploaded.</p>
 
       <div class="dropzone" id="dropzone">
         <p>
@@ -424,7 +343,7 @@ const result = audit(bytes, "report.odt");
       </div>
 
       <div id="summary-wrap" style="display: none">
-        <div class="badge-row" id="summary" aria-label="Issue counts"></div>
+        <div id="summary" class="badge-list" aria-label="Issue counts"></div>
       </div>
 
       <div id="issues-wrap" class="table-wrap" style="display: none">
