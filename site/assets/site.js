@@ -1,216 +1,107 @@
 /* odflens — progressive enhancement only.
-   Everything here is optional: the site is fully usable with JS disabled.
-   No network calls. */
+   The page is fully readable with JavaScript disabled. Nothing here makes a
+   network request. */
 (function () {
   "use strict";
 
   var root = document.documentElement;
-  root.classList.add("has-js");
 
-  /* ----- Theme toggle ----------------------------------------------------
-     A stored preference wins; otherwise the OS preference is honoured.
-     The button is created only when the header exists, so no-JS keeps the
-     dark-default stylesheet and prefers-color-scheme. */
-  function initTheme() {
-    var host =
-      document.querySelector(".header-actions") ||
-      document.querySelector(".header-inner");
-    if (!host) return;
-
-    var button = document.createElement("button");
-    button.type = "button";
-    button.className = "theme-toggle";
-
-    function prefersDark() {
-      return (
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-      );
-    }
-
-    function current() {
-      var attr = root.getAttribute("data-theme");
-      if (attr === "dark" || attr === "light") return attr;
-      return prefersDark() ? "dark" : "light";
-    }
-
-    function sync() {
-      var mode = current();
-      var next = mode === "dark" ? "light" : "dark";
-      button.textContent = next === "dark" ? "Dark" : "Light";
-      button.setAttribute("aria-label", "Switch to " + next + " theme");
-      button.setAttribute("title", "Switch to " + next + " theme");
-    }
-
-    button.addEventListener("click", function () {
-      var next = current() === "dark" ? "light" : "dark";
-      root.setAttribute("data-theme", next);
-      try {
-        localStorage.setItem("odflens-theme", next);
-      } catch (error) {
-        /* storage unavailable; the in-page toggle still works */
-      }
-      sync();
-    });
-
-    host.appendChild(button);
-
-    /* If there is no explicit choice yet, set one from the OS and keep the
-       toggle label in sync with what is actually rendered. */
-    if (!root.getAttribute("data-theme")) {
-      root.setAttribute("data-theme", prefersDark() ? "dark" : "light");
-    }
-    sync();
+  function each(list, fn) {
+    Array.prototype.forEach.call(list, fn);
   }
 
-  /* ----- Active section highlight ---------------------------------------
-     Marks the nav link for the section currently in the URL fragment. */
-  function highlightActiveNav() {
-    var links = document.querySelectorAll(".nav a[href^='#']");
-    if (links.length === 0) return;
+  /* ----- Theme toggle ---------------------------------------------------
+     An explicit data-theme is stored when the visitor picks a theme;
+     otherwise the stylesheet follows prefers-color-scheme. */
+  var STORAGE_KEY = "odflens-theme";
+  var toggle = document.getElementById("theme-toggle");
+  var toggleText = document.getElementById("theme-toggle-text");
 
-    function sync() {
-      var hash = location.hash || "#main";
-      Array.prototype.forEach.call(links, function (link) {
-        if (link.getAttribute("href") === hash) {
-          link.setAttribute("aria-current", "page");
-        } else {
-          link.removeAttribute("aria-current");
-        }
-      });
+  function storedTheme() {
+    try {
+      return window.localStorage.getItem(STORAGE_KEY);
+    } catch (err) {
+      return null;
     }
-
-    sync();
-    window.addEventListener("hashchange", sync);
   }
 
-  /* ----- Sticky nav shadow on scroll ------------------------------------ */
-  function initHeaderShadow() {
-    var header = document.querySelector(".site-header");
-    if (!header) return;
-
-    function sync() {
-      header.classList.toggle("is-scrolled", window.scrollY > 8);
-    }
-
-    sync();
-    window.addEventListener("scroll", sync, { passive: true });
-  }
-
-  /* ----- Mobile nav ------------------------------------------------------ */
-  function initMobileNav() {
-    var toggle = document.querySelector(".nav-toggle");
-    var links = document.querySelector(".nav-links");
-    if (!toggle || !links) return;
-
-    function setOpen(open) {
-      links.classList.toggle("is-open", open);
-      toggle.setAttribute("aria-expanded", open ? "true" : "false");
-    }
-
-    toggle.addEventListener("click", function () {
-      setOpen(!links.classList.contains("is-open"));
-    });
-
-    links.addEventListener("click", function (event) {
-      if (event.target && event.target.closest("a")) setOpen(false);
-    });
-
-    window.addEventListener("hashchange", function () {
-      setOpen(false);
-    });
-  }
-
-  /* ----- Scroll reveal ---------------------------------------------------
-     Content is visible by default. Only below-the-fold nodes are hidden and
-     observed, so nothing can be stranded hidden if the observer never fires. */
-  function initReveal() {
-    var items = document.querySelectorAll(".reveal");
-    if (items.length === 0) return;
-    if (
-      !("IntersectionObserver" in window) ||
-      (window.matchMedia &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-    ) {
-      return;
-    }
-
-    var showAll = function () {
-      Array.prototype.forEach.call(items, function (item) {
-        item.classList.remove("reveal-hidden");
-      });
-    };
-
-    var observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.remove("reveal-hidden");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+  function prefersDark() {
+    return (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
     );
-
-    Array.prototype.forEach.call(items, function (item) {
-      var rect = item.getBoundingClientRect();
-      if (rect.top > window.innerHeight * 0.9) {
-        item.classList.add("reveal-hidden");
-        observer.observe(item);
-      }
-    });
-
-    /* Safety net: if anything is still hidden after a few seconds, show it. */
-    window.setTimeout(showAll, 4000);
   }
 
-  /* ----- Pause the ambient aurora when the tab is hidden ---------------- */
-  function initAurora() {
-    var aurora = document.querySelector(".hero-aurora");
-    if (!aurora) return;
+  function applyTheme(theme) {
+    if (theme === "dark" || theme === "light") {
+      root.setAttribute("data-theme", theme);
+    } else {
+      root.removeAttribute("data-theme");
+    }
 
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) {
-        aurora.setAttribute("data-paused", "");
-      } else {
-        aurora.removeAttribute("data-paused");
+    if (!toggle) return;
+    var isDark = theme === "dark" || (theme == null && prefersDark());
+    toggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+    toggle.setAttribute(
+      "aria-label",
+      isDark ? "Switch to light theme" : "Switch to dark theme"
+    );
+    if (toggleText) toggleText.textContent = isDark ? "Dark" : "Light";
+  }
+
+  function currentTheme() {
+    var explicit = root.getAttribute("data-theme");
+    return explicit === "dark" || explicit === "light" ? explicit : storedTheme();
+  }
+
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = toggle.getAttribute("aria-pressed") === "true";
+      var next = isDark ? "light" : "dark";
+      try {
+        window.localStorage.setItem(STORAGE_KEY, next);
+      } catch (err) {
+        void 0;
       }
+      applyTheme(next);
     });
   }
 
-  /* ----- Copy-to-clipboard for code blocks ------------------------------
-     Adds a button to every <pre class="code">. Only added when the browser
-     can actually copy, so unsupported browsers keep the plain block. */
-  function enhanceCodeBlocks() {
-    var blocks = document.querySelectorAll("pre.code");
+  applyTheme(currentTheme());
 
-    Array.prototype.forEach.call(blocks, function (pre) {
-      var code = pre.querySelector("code") || pre;
-      var text = code.textContent;
+  /* ----- Mobile navigation ---------------------------------------------- */
+  var navToggle = document.getElementById("nav-toggle");
+  var nav = document.getElementById("site-nav");
 
-      var button = document.createElement("button");
-      button.type = "button";
-      button.className = "code-copy";
-      button.textContent = "Copy";
-      button.setAttribute("aria-label", "Copy code to clipboard");
+  function closeNav() {
+    if (nav) nav.setAttribute("data-open", "false");
+    if (navToggle) navToggle.setAttribute("aria-expanded", "false");
+  }
 
-      button.addEventListener("click", function () {
-        copyText(text).then(
-          function () {
-            setCopied(button, true);
-          },
-          function () {
-            setCopied(button, false);
-          },
-        );
-      });
-
-      if (getComputedStyle(pre).position === "static") {
-        pre.style.position = "relative";
-      }
-      pre.appendChild(button);
+  if (navToggle && nav) {
+    navToggle.addEventListener("click", function () {
+      var open = nav.getAttribute("data-open") === "true";
+      nav.setAttribute("data-open", open ? "false" : "true");
+      navToggle.setAttribute("aria-expanded", open ? "false" : "true");
     });
+
+    nav.addEventListener("click", function (event) {
+      var target = event.target;
+      if (target && target.closest && target.closest("a")) closeNav();
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeNav();
+    });
+  }
+
+  /* ----- Copy to clipboard ---------------------------------------------- */
+  function canCopy() {
+    if (navigator.clipboard && window.isSecureContext) return true;
+    return (
+      typeof document.queryCommandSupported === "function" &&
+      document.queryCommandSupported("copy")
+    );
   }
 
   function copyText(text) {
@@ -238,39 +129,106 @@
     });
   }
 
-  function setCopied(button, ok) {
+  function flashLabel(button, ok, idle) {
     button.textContent = ok ? "Copied" : "Copy failed";
     button.setAttribute("data-copied", ok ? "true" : "false");
-    button.setAttribute("aria-live", "polite");
-
     window.clearTimeout(button._resetTimer);
     button._resetTimer = window.setTimeout(function () {
-      button.textContent = "Copy";
+      button.textContent = idle;
       button.removeAttribute("data-copied");
     }, 1600);
   }
 
-  function canCopy() {
-    if (navigator.clipboard && window.isSecureContext) {
-      return true;
+  function enhanceCopyButtons() {
+    each(document.querySelectorAll("[data-copy]"), function (button) {
+      var idle = button.textContent || "Copy";
+      button.addEventListener("click", function () {
+        var value = button.getAttribute("data-copy") || "";
+        copyText(value).then(
+          function () {
+            flashLabel(button, true, idle);
+          },
+          function () {
+            flashLabel(button, false, idle);
+          }
+        );
+      });
+    });
+  }
+
+  function enhanceCodeBlocks() {
+    each(document.querySelectorAll("pre.code"), function (pre) {
+      if (pre.querySelector(".code__copy")) return;
+      var code = pre.querySelector("code") || pre;
+      var text = code.textContent;
+
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "copy code__copy";
+      button.textContent = "Copy";
+      button.setAttribute("aria-label", "Copy code to clipboard");
+
+      button.addEventListener("click", function () {
+        copyText(text).then(
+          function () {
+            button.textContent = "Copied";
+            button.setAttribute("data-copied", "true");
+            window.clearTimeout(button._resetTimer);
+            button._resetTimer = window.setTimeout(function () {
+              button.textContent = "Copy";
+              button.removeAttribute("data-copied");
+            }, 1600);
+          },
+          function () {
+            button.textContent = "Copy failed";
+            button.setAttribute("data-copied", "false");
+          }
+        );
+      });
+
+      if (getComputedStyle(pre).position === "static") {
+        pre.style.position = "relative";
+      }
+      pre.appendChild(button);
+    });
+  }
+
+  /* ----- Scroll reveal (opacity + rise, once per element) ---------------
+     The .js class is set in <head> only when IntersectionObserver exists and
+     reduced motion is off, so content can never be stranded hidden. */
+  function initReveal() {
+    var items = document.querySelectorAll(".reveal");
+    if (items.length === 0) return;
+
+    if (!("IntersectionObserver" in window)) {
+      each(items, function (el) {
+        el.classList.add("is-visible");
+      });
+      return;
     }
-    return (
-      typeof document.queryCommandSupported === "function" &&
-      document.queryCommandSupported("copy")
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
     );
+
+    each(items, function (el) {
+      observer.observe(el);
+    });
   }
 
   function init() {
-    initTheme();
-    highlightActiveNav();
-    initHeaderShadow();
-    initMobileNav();
-    initReveal();
-    initAurora();
-
     if (canCopy()) {
+      enhanceCopyButtons();
       enhanceCodeBlocks();
     }
+    initReveal();
   }
 
   if (document.readyState === "loading") {

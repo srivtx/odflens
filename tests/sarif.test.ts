@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { audit } from "../src/audit";
+import { RULE_CATALOG } from "../src/catalog";
 import { makeBadOdt } from "../src/fixtures";
 import { toSarif, writeSarif } from "../src/sarif";
 
@@ -28,8 +29,33 @@ describe("toSarif", () => {
     expect(found!.level).toBe("error");
     expect(found!.message.text).toContain("language");
     expect(found!.locations[0]!.physicalLocation.artifactLocation.uri).toBe("bad.odt");
-    expect(found!.locations[0]!.physicalLocation.region.startLine).toBe(1);
+    expect(
+      (found!.locations[0]!.physicalLocation as { region?: unknown }).region,
+    ).toBeUndefined();
     expect(found!.properties.tags).toContain("accessibility");
+  });
+
+  test("advertises the full rule catalog even when nothing fired", () => {
+    const sarif = toSarif([], "odflens", "0.1.0");
+    const ids = sarif.runs[0]!.tool.driver.rules.map((rule) => rule.id);
+    const expected = RULE_CATALOG.map((rule) => rule.code).sort();
+    expect(ids).toEqual(expected);
+    expect(sarif.runs[0]!.results).toHaveLength(0);
+  });
+
+  test("URL-encodes the artifact URI", () => {
+    const spaced = audit(makeBadOdt(), "my report.odt");
+    const sarif = toSarif(spaced, "odflens", "0.1.0");
+    expect(
+      sarif.runs[0]!.results[0]!.locations[0]!.physicalLocation.artifactLocation.uri,
+    ).toBe("my%20report.odt");
+  });
+
+  test("reports unreadable files as ODF-000 results", () => {
+    const broken = audit(new Uint8Array([1, 2, 3]), "broken.odt");
+    expect(broken.fatal).toBe(true);
+    const sarif = toSarif(broken, "odflens", "0.1.0");
+    expect(sarif.runs[0]!.results.some((result) => result.ruleId === "ODF-000")).toBe(true);
   });
 
   test("writeSarif writes a parseable SARIF file", async () => {

@@ -2,9 +2,9 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { audit } from "./audit";
-import { formatJson, formatText } from "./report";
+import { formatJsonResults, formatText } from "./report";
 import { writeSarif } from "./sarif";
-import type { AuditResult, Severity } from "./types";
+import type { AuditResult, Issue, Severity } from "./types";
 
 export type FailOn = Severity | "none";
 
@@ -37,7 +37,7 @@ Usage:
 
 Options:
   --dir <path>          Audit every .odt/.ods/.odp file in <path> (non-recursive, sorted)
-  --json                Print machine-readable JSON instead of text
+  --json                Print a single JSON array of results to stdout
   --quiet               Print a single summary line per file
   --sarif <path>        Write a SARIF 2.1.0 report to <path>
   --fail-on <level>     Exit 1 on error, warning, info, or none (default: error)
@@ -45,9 +45,10 @@ Options:
   -h, --help            Show this help
 
 Exit codes:
-  0  no issues at or above --fail-on
-  1  at least one issue at or above --fail-on
-  2  invalid usage / no input
+  0  no findings at or above --fail-on
+  1  findings at or above --fail-on
+  2  invalid usage, or a document that cannot be read/parsed as ODF
+  3  an input file or output report could not be read/written
 `;
 
 const EXTENSIONS = [".odt", ".ods", ".odp"];
@@ -122,6 +123,10 @@ export function parseArgs(argv: string[]): Options {
   return opts;
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function collectFiles(opts: Options): string[] {
   const files = [...opts.files];
   if (opts.dir !== null) {
@@ -137,12 +142,28 @@ function collectFiles(opts: Options): string[] {
   return files;
 }
 
+function unreadableResult(file: string, message: string): AuditResult {
+  const issue: Issue = {
+    code: "ODF-000",
+    severity: "error",
+    message: `Could not read file: ${message}`,
+    location: file,
+  };
+  return {
+    file,
+    kind: "odf",
+    issues: [issue],
+    counts: { error: 1, warning: 0, info: 0 },
+    fatal: true,
+  };
+}
+
 export async function run(argv: string[]): Promise<number> {
   let opts: Options;
   try {
     opts = parseArgs(argv);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : String(err));
+    console.error(errorMessage(err));
     console.error(USAGE);
     return 2;
   }
@@ -157,53 +178,78 @@ export async function run(argv: string[]): Promise<number> {
     return 0;
   }
 
-  const files = collectFiles(opts);
+  let files: string[];
+  try {
+    files = collectFiles(opts);
+  } catch (err) {
+    console.error(`Could not read directory ${opts.dir}: ${errorMessage(err)}`);
+    return 2;
+  }
+
   if (files.length === 0) {
+    if (opts.dir !== null) {
+      console.error(`No ODF files found in ${opts.dir}`);
+      return 0;
+    }
     console.error(USAGE);
     return 2;
   }
 
-  let failed = false;
+  let hadFindings = false;
+  let hadFatal = false;
+  let hadIo = false;
   const results: AuditResult[] = [];
+
   for (const file of files) {
     let data: Uint8Array;
     try {
       data = new Uint8Array(await Bun.file(file).arrayBuffer());
     } catch (err) {
-      console.error(`${file}: ${err instanceof Error ? err.message : String(err)}`);
-      failed = true;
+      const message = errorMessage(err);
+      console.error(`${file}: ${message}`);
+      hadIo = true;
+      const result = unreadableResult(file, message);
+      results.push(result);
+      if (opts.quiet) {
+        console.log(`${basename(file)}: unreadable`);
+      }
       continue;
     }
 
     const result = audit(data, basename(file));
     results.push(result);
-    if (hasFailure(result, opts.failOn)) {
-      failed = true;
+    if (result.fatal) {
+      hadFatal = true;
+    } else if (hasFailure(result, opts.failOn)) {
+      hadFindings = true;
     }
 
     if (opts.quiet) {
       console.log(
         `${basename(file)}: ${result.counts.error} error(s), ${result.counts.warning} warning(s), ${result.counts.info} info`,
       );
-    } else if (opts.json) {
-      console.log(formatJson(result));
-    } else {
+    } else if (!opts.json) {
       console.log(formatText(result));
     }
+  }
+
+  if (opts.json) {
+    console.log(formatJsonResults(results));
   }
 
   if (opts.sarif !== null) {
     try {
       await writeSarif(opts.sarif, results, "odflens", VERSION);
     } catch (err) {
-      console.error(
-        `Could not write SARIF report: ${err instanceof Error ? err.message : String(err)}`,
-      );
-      return 2;
+      console.error(`Could not write SARIF report: ${errorMessage(err)}`);
+      return 3;
     }
   }
 
-  return failed ? 1 : 0;
+  if (hadIo) return 3;
+  if (hadFatal) return 2;
+  if (hadFindings) return 1;
+  return 0;
 }
 
 if (import.meta.main) {

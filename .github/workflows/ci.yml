@@ -35,3 +35,6 @@ jobs:
 
       - name: CLI passes on the good fixture
         run: bun run src/cli.ts fixtures/good.odt
+
+      - name: Site assets are in sync
+        run: bun run build:site && git diff --exit-code site/assets/demo.js && bun run check:site

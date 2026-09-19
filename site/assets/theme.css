@@ -1,0 +1,6 @@
+/* odflens — per-tool accent for the Lens suite.
+   Only the accent changes here; everything else comes from lens.css. */
+:root {
+  --accent: #7c3aed;
+  --accent-ink: #ffffff;
+}

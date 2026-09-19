@@ -2,6 +2,7 @@
 import { describe, expect, test } from "bun:test";
 import { strToU8, zipSync } from "fflate";
 import { audit } from "../src/audit";
+import { makeGoodOdp, makeGoodOds } from "../src/fixtures";
 
 const NS =
   'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" ' +
@@ -55,7 +56,7 @@ const BAD_META =
 
 const GOOD_CONTENT =
   '<?xml version="1.0" encoding="UTF-8"?>\n' +
-  `<office:document-content ${NS} office:version="1.2" office:language="en">` +
+  `<office:document-content ${NS} office:version="1.2" xml:lang="en">` +
   "<office:body><office:text>" +
   '<text:h text:outline-level="1">Heading</text:h>' +
   '<text:h text:outline-level="2">Subheading</text:h>' +
@@ -97,5 +98,52 @@ describe("runRules via audit", () => {
     const result = audit(makePackage(GOOD_CONTENT, GOOD_STYLES, GOOD_META), "good.odt");
     expect(result.kind).toBe("odt");
     expect(result.counts.error).toBe(0);
+  });
+});
+
+describe("P0-2: rules are gated by document kind", () => {
+  test("a valid ODP deck is not flagged for its slide-title text box", () => {
+    const result = audit(makeGoodOdp(), "good.odp");
+    const codes = result.issues.map((issue) => issue.code);
+    expect(result.kind).toBe("odp");
+    expect(codes).not.toContain("ODF-ALT-003");
+    expect(codes).not.toContain("ODF-HEAD-005");
+    expect(result.counts.error).toBe(0);
+  });
+
+  test("a valid ODS sheet is not flagged for missing table header rows", () => {
+    const result = audit(makeGoodOds(), "good.ods");
+    const codes = result.issues.map((issue) => issue.code);
+    expect(result.kind).toBe("ods");
+    expect(codes).not.toContain("ODF-TBL-006");
+    expect(codes).not.toContain("ODF-HEAD-005");
+    expect(result.counts.error).toBe(0);
+  });
+
+  test("an ODT text box frame is not reported as an image missing alt text", () => {
+    const textboxContent =
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      `<office:document-content ${NS} office:version="1.2" xml:lang="en">` +
+      "<office:body><office:text>" +
+      '<text:h text:outline-level="1">Heading</text:h>' +
+      '<draw:frame><draw:text-box><text:p>Caption</text:p></draw:text-box></draw:frame>' +
+      "</office:text></office:body></office:document-content>";
+    const result = audit(
+      makePackage(textboxContent, GOOD_STYLES, GOOD_META),
+      "textbox.odt",
+    );
+    expect(result.issues.map((issue) => issue.code)).not.toContain("ODF-ALT-003");
+  });
+
+  test("an ODT image frame without alt text is still reported", () => {
+    const imageContent =
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      `<office:document-content ${NS} office:version="1.2" xml:lang="en">` +
+      "<office:body><office:text>" +
+      '<text:h text:outline-level="1">Heading</text:h>' +
+      '<draw:frame><draw:image xlink:href="Pictures/x.png"/></draw:frame>' +
+      "</office:text></office:body></office:document-content>";
+    const result = audit(makePackage(imageContent, GOOD_STYLES, GOOD_META), "image.odt");
+    expect(result.issues.map((issue) => issue.code)).toContain("ODF-ALT-003");
   });
 });

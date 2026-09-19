@@ -12,18 +12,17 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function fatal(file: string, kind: AuditResult["kind"], message: string): AuditResult {
+  const issue: Issue = { code: "ODF-000", severity: "error", message, location: file };
+  return { file, kind, issues: [issue], counts: countIssues([issue]), fatal: true };
+}
+
 export function audit(data: Uint8Array, file = "document.odt"): AuditResult {
   let pkg;
   try {
     pkg = openOdf(data);
   } catch (error) {
-    const issue: Issue = {
-      code: "ODF-000",
-      severity: "info",
-      message: `Could not open ODF package: ${errorMessage(error)}`,
-      location: file,
-    };
-    return { file, kind: "odf", issues: [issue], counts: countIssues([issue]) };
+    return fatal(file, "odf", `Could not open ODF package: ${errorMessage(error)}`);
   }
 
   let kind: AuditResult["kind"] = "odf";
@@ -41,27 +40,22 @@ export function audit(data: Uint8Array, file = "document.odt"): AuditResult {
   }
 
   if (content === undefined) {
-    const issue: Issue = {
-      code: "ODF-000",
-      severity: "info",
-      message: "Package does not contain content.xml.",
-      location: file,
-    };
-    return { file, kind, issues: [issue], counts: countIssues([issue]) };
+    return fatal(file, kind, "Package does not contain content.xml.");
   }
 
   let issues: Issue[] = [];
   try {
     issues = runRules(pkg, kind, file);
   } catch (error) {
-    const issue: Issue = {
-      code: "ODF-000",
-      severity: "info",
-      message: `Could not evaluate rules: ${errorMessage(error)}`,
-      location: file,
-    };
-    issues = [issue];
+    return fatal(file, kind, `Could not evaluate rules: ${errorMessage(error)}`);
   }
 
-  return { file, kind, issues, counts: countIssues(issues) };
+  const fatalResult = issues.some((issue) => issue.code === "ODF-000");
+  return {
+    file,
+    kind,
+    issues,
+    counts: countIssues(issues),
+    ...(fatalResult ? { fatal: true } : {}),
+  };
 }

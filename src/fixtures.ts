@@ -4,6 +4,7 @@ import { strToU8, zipSync } from "fflate";
 
 const MIME_ODT = "application/vnd.oasis.opendocument.text";
 const MIME_ODS = "application/vnd.oasis.opendocument.spreadsheet";
+const MIME_ODP = "application/vnd.oasis.opendocument.presentation";
 
 const CONTENT_NS =
   'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" ' +
@@ -48,18 +49,19 @@ function manifest(mediaType: string): string {
   );
 }
 
-function meta(title?: string): string {
+function meta(title?: string, language?: string): string {
   const dcTitle = title ? `<dc:title>${title}</dc:title>` : "";
+  const dcLanguage = language ? `<dc:language>${language}</dc:language>` : "";
   return (
     XML_HEADER +
     `<office:document-meta ${META_NS} office:version="1.2">` +
-    `<office:meta><meta:generator>odflens fixtures</meta:generator>${dcTitle}</office:meta>` +
+    `<office:meta><meta:generator>odflens fixtures</meta:generator>${dcTitle}${dcLanguage}</office:meta>` +
     "</office:document-meta>"
   );
 }
 
 function styles(language?: string): string {
-  const lang = language ? ` office:language="${language}"` : "";
+  const lang = language ? ` xml:lang="${language}"` : "";
   return (
     XML_HEADER +
     `<office:document-styles ${STYLES_NS}${lang} office:version="1.2">` +
@@ -116,7 +118,7 @@ function badOdtContent(): string {
 function goodOdtContent(): string {
   return (
     XML_HEADER +
-    `<office:document-content ${CONTENT_NS} office:language="en" office:version="1.2">` +
+    `<office:document-content ${CONTENT_NS} xml:lang="en" office:version="1.2">` +
     "<office:body><office:text>" +
     '<text:h text:outline-level="1">Introduction</text:h>' +
     "<text:p>Some introductory body text.</text:p>" +
@@ -146,6 +148,42 @@ function badOdsContent(): string {
   );
 }
 
+function goodOdsContent(): string {
+  const cell = (value: string) =>
+    '<table:table-cell office:value-type="string"><text:p>' +
+    `${value}</text:p></table:table-cell>`;
+  return (
+    XML_HEADER +
+    `<office:document-content ${CONTENT_NS} xml:lang="en" office:version="1.2">` +
+    "<office:body><office:spreadsheet>" +
+    '<table:table table:name="Sheet1">' +
+    `<table:table-row>${cell("Name")}${cell("Value")}</table:table-row>` +
+    `<table:table-row>${cell("Alpha")}${cell("One")}</table:table-row>` +
+    "</table:table>" +
+    "</office:spreadsheet></office:body>" +
+    "</office:document-content>"
+  );
+}
+
+function goodOdpContent(): string {
+  return (
+    XML_HEADER +
+    `<office:document-content ${CONTENT_NS} xml:lang="en" office:version="1.2">` +
+    "<office:body><office:presentation>" +
+    '<draw:page draw:name="Slide1">' +
+    '<draw:frame draw:name="Title" svg:width="20cm" svg:height="3cm">' +
+    "<draw:text-box><text:p>Quarterly results</text:p></draw:text-box>" +
+    "</draw:frame>" +
+    '<draw:frame draw:name="Chart" svg:width="12cm" svg:height="8cm">' +
+    "<svg:title>Sales chart</svg:title><svg:desc>A bar chart of sales.</svg:desc>" +
+    '<draw:image xlink:href="Pictures/chart.png" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>' +
+    "</draw:frame>" +
+    "</draw:page>" +
+    "</office:presentation></office:body>" +
+    "</office:document-content>"
+  );
+}
+
 export function makeBadOdt(): Uint8Array {
   return zip(
     {
@@ -166,7 +204,33 @@ export function makeGoodOdt(): Uint8Array {
       "META-INF/manifest.xml": manifest(MIME_ODT),
       "content.xml": goodOdtContent(),
       "styles.xml": styles("en"),
-      "meta.xml": meta("Accessible"),
+      "meta.xml": meta("Accessible", "en-GB"),
+    },
+    "mimetype",
+  );
+}
+
+export function makeGoodOds(): Uint8Array {
+  return zip(
+    {
+      mimetype: MIME_ODS,
+      "META-INF/manifest.xml": manifest(MIME_ODS),
+      "content.xml": goodOdsContent(),
+      "styles.xml": styles("en"),
+      "meta.xml": meta("Spreadsheet", "en-GB"),
+    },
+    "mimetype",
+  );
+}
+
+export function makeGoodOdp(): Uint8Array {
+  return zip(
+    {
+      mimetype: MIME_ODP,
+      "META-INF/manifest.xml": manifest(MIME_ODP),
+      "content.xml": goodOdpContent(),
+      "styles.xml": styles("en"),
+      "meta.xml": meta("Deck", "en-GB"),
     },
     "mimetype",
   );
@@ -190,9 +254,11 @@ export function writeFixturesTo(dir: string): void {
   writeFileSync(join(dir, "bad.odt"), makeBadOdt());
   writeFileSync(join(dir, "good.odt"), makeGoodOdt());
   writeFileSync(join(dir, "bad.ods"), makeBadOds());
+  writeFileSync(join(dir, "good.ods"), makeGoodOds());
+  writeFileSync(join(dir, "good.odp"), makeGoodOdp());
 }
 
 if (import.meta.main) {
   writeFixturesTo("fixtures");
-  console.log("Wrote fixtures/bad.odt, fixtures/good.odt, fixtures/bad.ods");
+  console.log("Wrote fixtures/bad.odt, good.odt, bad.ods, good.ods, good.odp");
 }

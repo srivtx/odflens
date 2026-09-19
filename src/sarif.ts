@@ -1,3 +1,4 @@
+import { RULE_CATALOG, ruleDefinition } from "./catalog";
 import type { AuditResult, Issue, Severity } from "./types";
 
 export type SarifLevel = "error" | "warning" | "note";
@@ -15,7 +16,6 @@ export interface SarifResult {
   locations: Array<{
     physicalLocation: {
       artifactLocation: { uri: string };
-      region: { startLine: number };
     };
   }>;
   properties: { tags: string[] };
@@ -59,6 +59,21 @@ function tagsFor(issue: Issue): string[] {
   return tags;
 }
 
+/**
+ * The text has no line/column information (ODF rules operate on the document
+ * model, not on source lines), so results point at the artifact only. A fake
+ * `startLine: 1` region is intentionally omitted.
+ */
+function artifactLocation(uri: string): SarifResult["locations"] {
+  return [
+    {
+      physicalLocation: {
+        artifactLocation: { uri: encodeURI(uri) },
+      },
+    },
+  ];
+}
+
 export function toSarif(
   results: AuditResult | AuditResult[],
   toolName: string,
@@ -66,37 +81,47 @@ export function toSarif(
 ): SarifLog {
   const list = Array.isArray(results) ? results : [results];
 
-  const byCode = new Map<string, Issue>();
+  const observed = new Map<string, Issue>();
   for (const result of list) {
     for (const issue of result.issues) {
-      if (!byCode.has(issue.code)) byCode.set(issue.code, issue);
+      if (!observed.has(issue.code)) observed.set(issue.code, issue);
     }
   }
 
-  const rules: SarifRule[] = [...byCode.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([code, issue]) => ({
+  const rules: SarifRule[] = [];
+  const seen = new Set<string>();
+  // Always advertise the full catalog, then append any rule that fired but is
+  // not (yet) catalogued so no result points at a missing rule.
+  for (const definition of RULE_CATALOG) {
+    rules.push({
+      id: definition.code,
+      shortDescription: { text: definition.message },
+      properties: { tags: tagsFor({ ...definition, location: "" }) },
+    });
+    seen.add(definition.code);
+  }
+  for (const [code, issue] of observed) {
+    if (seen.has(code)) continue;
+    rules.push({
       id: code,
       shortDescription: { text: issue.message },
       properties: { tags: tagsFor(issue) },
-    }));
+    });
+  }
+  rules.sort((a, b) => a.id.localeCompare(b.id));
 
   const sarifResults: SarifResult[] = [];
   for (const result of list) {
     for (const issue of result.issues) {
+      const definition = ruleDefinition(issue.code);
       sarifResults.push({
         ruleId: issue.code,
         level: toLevel(issue.severity),
         message: { text: issue.message },
-        locations: [
-          {
-            physicalLocation: {
-              artifactLocation: { uri: issue.location },
-              region: { startLine: 1 },
-            },
-          },
-        ],
-        properties: { tags: tagsFor(issue) },
+        locations: artifactLocation(issue.location),
+        properties: {
+          tags: definition ? tagsFor({ ...definition, location: issue.location }) : tagsFor(issue),
+        },
       });
     }
   }

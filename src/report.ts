@@ -22,3 +22,12 @@ export function formatText(result: AuditResult): string {
 export function formatJson(result: AuditResult): string {
   return JSON.stringify(result, null, 2);
 }
+
+/**
+ * Serialize one or more audit results as a single JSON array. Emitting one
+ * document for all files keeps `--json f1 f2` parseable (printing one object
+ * per file yields concatenated, invalid JSON).
+ */
+export function formatJsonResults(results: AuditResult[]): string {
+  return JSON.stringify(results, null, 2);
+}

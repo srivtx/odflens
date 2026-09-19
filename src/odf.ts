@@ -1,9 +1,56 @@
 import { strFromU8, unzipSync } from "fflate";
-import { XMLParser } from "fast-xml-parser";
+import type { UnzipFileInfo } from "fflate";
+import { XMLParser, XMLValidator } from "fast-xml-parser";
 import type { OdfPackage } from "./types";
 
-export function openOdf(data: Uint8Array): OdfPackage {
-  const files = unzipSync(data);
+export interface OdfLimits {
+  /** Maximum uncompressed size of a single zip entry, in bytes. */
+  maxEntryBytes: number;
+  /** Maximum combined uncompressed size of all entries, in bytes. */
+  maxTotalBytes: number;
+}
+
+export const DEFAULT_LIMITS: OdfLimits = {
+  maxEntryBytes: 64 * 1024 * 1024,
+  maxTotalBytes: 512 * 1024 * 1024,
+};
+
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MiB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KiB`;
+  return `${bytes} B`;
+}
+
+export function openOdf(data: Uint8Array, limits: OdfLimits = DEFAULT_LIMITS): OdfPackage {
+  if (!(data instanceof Uint8Array) || data.length === 0) {
+    throw new Error("Package is empty (0 bytes).");
+  }
+
+  let total = 0;
+  let files: Record<string, Uint8Array>;
+  try {
+    files = unzipSync(data, {
+      filter(file: UnzipFileInfo): boolean {
+        if (file.originalSize > limits.maxEntryBytes) {
+          throw new Error(
+            `Zip entry "${file.name}" is ${formatBytes(file.originalSize)}, over the ` +
+              `${formatBytes(limits.maxEntryBytes)} per-entry limit.`,
+          );
+        }
+        total += file.originalSize;
+        if (total > limits.maxTotalBytes) {
+          throw new Error(
+            `Uncompressed package is over the ${formatBytes(limits.maxTotalBytes)} total limit.`,
+          );
+        }
+        return true;
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Could not read zip archive: ${message}`);
+  }
+
   return {
     files,
     text(path: string): string | undefined {
@@ -42,6 +89,12 @@ const parser = new XMLParser({
 });
 
 export function parseXml(text: string): any {
+  const validated = XMLValidator.validate(text);
+  if (validated !== true) {
+    const err = validated.err;
+    const detail = err ? `${err.msg} (line ${err.line}, col ${err.col})` : "unknown error";
+    throw new Error(`Malformed XML: ${detail}`);
+  }
   return parser.parse(text);
 }
 
