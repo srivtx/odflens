@@ -215,8 +215,8 @@ The same output is available from the library:
 import { audit, toSarif, writeSarif } from "odflens";
 
 const result = audit(bytes, "report.odt");
-const sarif = toSarif(result, "odflens", "0.1.0");
-await writeSarif("odflens.sarif", [result], "odflens", "0.1.0");
+const sarif = toSarif(result, "odflens", "0.2.0");
+await writeSarif("odflens.sarif", [result], "odflens", "0.2.0");
 ```
 
 ## Testing

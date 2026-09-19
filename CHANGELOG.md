@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-09-20
 
 ### Fixed
 
@@ -18,6 +18,7 @@ All notable changes to this project are documented here. The format is based on
 - Decompression is bounded by per-entry and total uncompressed size ceilings.
 - `--json` emits one JSON array; `--dir` errors are clean; exit codes are
   defined and documented (`0`/`1`/`2`/`3`).
+- SARIF output always includes the full rule catalog, even when no issue fired.
 
 ## [0.1.0] - 2026-09-19
 
@@ -36,4 +37,5 @@ All notable changes to this project are documented here. The format is based on
   helper.
 - GitHub Actions CI running typecheck, tests, and fixture CLI checks.
 
+[0.2.0]: https://github.com/srivtx/odflens/releases/tag/v0.2.0
 [0.1.0]: https://github.com/srivtx/odflens/releases/tag/v0.1.0

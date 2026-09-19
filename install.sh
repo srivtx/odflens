@@ -6,7 +6,7 @@
 # Installs the `odflens` binary globally with Bun. Pass a git ref as the
 # first argument to pin a branch, tag, or commit:
 #
-#   curl -fsSL https://raw.githubusercontent.com/srivtx/odflens/main/install.sh | sh -s v0.1.0
+#   curl -fsSL https://raw.githubusercontent.com/srivtx/odflens/main/install.sh | sh -s v0.2.0
 set -eu
 
 REPO="srivtx/odflens"
