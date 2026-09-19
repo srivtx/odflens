@@ -141,7 +141,7 @@ describe("CLI contract: short flags and inline forms", () => {
   test("an unknown option is usage error 2, prefixed with odflens:", async () => {
     const { code, err } = await runCapture(["--nope"]);
     expect(code).toBe(2);
-    expect(err).toContain("odflens: Unknown option: --nope");
+    expect(err).toContain("odflens: unknown option --nope");
   });
 });
 

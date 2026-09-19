@@ -49,7 +49,7 @@
     "check:site": "node scripts/check-site.mjs"
   },
   "license": "MIT",
-  "author": "srivtx",
+  "author": "svx",
   "engines": {
     "bun": ">=1.1.0"
   },

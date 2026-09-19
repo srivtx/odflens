@@ -127,7 +127,7 @@ export function parseArgs(argv: string[]): Options {
     } else if (arg === "-h" || arg === "--help") {
       opts.help = true;
     } else if (arg.startsWith("-")) {
-      throw new Error(`Unknown option: ${arg}`);
+      throw new Error(`unknown option ${arg}`);
     } else {
       opts.files.push(arg);
     }
