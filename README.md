@@ -72,7 +72,7 @@ LibreOffice, no Java, and no GUI.
 curl -fsSL https://raw.githubusercontent.com/srivtx/odflens/main/install.sh | sh
 
 # Or run once, without installing
-bunx github:srivtx/odflens report.odt
+bunx github:srivtx/odflens#main report.odt
 
 # Install globally
 bun add -g github:srivtx/odflens
