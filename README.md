@@ -18,6 +18,27 @@
 
 **Live site:** [odflens](https://lens-site-srivtx.vercel.app/odflens.html)  ·  **Playground:** [https://lens-site-srivtx.vercel.app/playground](https://lens-site-srivtx.vercel.app/playground)  ·  **Source:** [github.com/srivtx/odflens](https://github.com/srivtx/odflens)
 
+## Website
+
+Product site with an embedded, fully client-side playground: a real `.odt` /
+`.ods` / `.odp` file is unzipped and audited in the browser with the same rule
+engine as the CLI. Nothing is uploaded.
+
+**Live:** [https://odflens-srivtx.vercel.app](https://odflens-srivtx.vercel.app)
+
+Local preview:
+
+```bash
+bun install
+bun run build:site   # bundles src/index.ts -> site/assets/demo.js (esbuild, IIFE, OdfLens)
+bun run check:site   # verifies links, classes, one h1, lang, and no external requests
+npx serve site       # or any static file server, then open http://localhost:3000
+```
+
+`site/assets/demo.js` is committed so the site deploys without a build step
+(`vercel.json` sets `outputDirectory` to `site`). Re-run `bun run build:site`
+after changing `src/`.
+
 ## The problem
 
 OpenDocument is a mandated format across large parts of EU and public-sector

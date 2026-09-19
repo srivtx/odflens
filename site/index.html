@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>odflens — OpenDocument accessibility audit</title>
+<meta name="description" content="odflens audits OpenDocument accessibility for ODT, ODS, and ODP files. Offline, namespace-aware static checks, SARIF output, no LibreOffice or Java required.">
+<meta name="theme-color" content="#0c0a14">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="odflens — OpenDocument accessibility audit">
+<meta property="og:description" content="Offline accessibility audit for OpenDocument files (ODT / ODS / ODP) — no LibreOffice, no Java, no GUI, no network.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://odflens-srivtx.vercel.app">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/styles.css">
+<script>
+(function () {
+  try {
+    var saved = localStorage.getItem("odflens-theme");
+    var prefersLight =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: light)").matches;
+    var theme = saved === "dark" || saved === "light"
+      ? saved
+      : (prefersLight ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", theme);
+  } catch (error) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="#main">
+      <span class="brand-mark" aria-hidden="true">
+        <svg class="brand-glyph" viewBox="0 0 32 32" width="24" height="24" focusable="false">
+          <defs>
+            <linearGradient id="lens-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#a78bfa"></stop>
+              <stop offset="1" stop-color="#7c3aed"></stop>
+            </linearGradient>
+          </defs>
+          <circle cx="14" cy="14" r="8.4" fill="none" stroke="url(#lens-grad)" stroke-width="2.2"></circle>
+          <line x1="20.2" y1="20.2" x2="27" y2="27" stroke="url(#lens-grad)" stroke-width="2.6" stroke-linecap="round"></line>
+          <circle cx="14" cy="14" r="3.1" fill="url(#lens-grad)" opacity="0.55"></circle>
+        </svg>
+      </span>
+      <span>
+        <span class="brand-word">odflens</span>
+        <span class="brand-sub">OpenDocument accessibility</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary" id="primary-nav">
+      <ul class="nav-links">
+        <li><a class="nav-link" href="#gap">Gap</a></li>
+        <li><a class="nav-link" href="#features">Features</a></li>
+        <li><a class="nav-link" href="#rules">Rules</a></li>
+        <li><a class="nav-link" href="#install">Install</a></li>
+        <li><a class="nav-link" href="#playground">Try it</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+      <a class="btn btn-ghost header-cta" href="https://github.com/srivtx/odflens">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero scanlines" aria-labelledby="hero-title">
+    <div class="hero-aurora" aria-hidden="true">
+      <span class="aurora-layer aurora-a"></span>
+      <span class="aurora-layer aurora-b"></span>
+    </div>
+    <div class="wrap hero-inner">
+      <p class="hero-badge"><span class="hero-badge-dot" aria-hidden="true"></span>Open standards laboratory · ODF 1.2 / 1.3</p>
+      <h1 class="display" id="hero-title">odflens</h1>
+      <p class="lede">Offline accessibility audit for OpenDocument files — ODT, ODS, and ODP — parsed and checked locally with no LibreOffice, no Java, no GUI, and no network.</p>
+      <p class="subcopy">A namespace-aware static checker for the format that EU and public-sector publishing mandate under EN 301 549 and the Web Accessibility Directive. Point it at a file, a directory, or a CI job; it unzips the package, runs the rules, and reports JSON, text, or SARIF.</p>
+      <pre class="code install-chip"><code>bun add -d odflens</code></pre>
+      <div class="actions">
+        <a class="btn btn-primary shimmer" href="#playground">Audit a document</a>
+        <a class="btn btn-ghost" href="https://github.com/srivtx/odflens">View source</a>
+      </div>
+      <ul class="trust-row" aria-label="Properties">
+        <li class="trust-item">no network</li>
+        <li class="trust-item">MIT licensed</li>
+        <li class="trust-item">Bun + TypeScript</li>
+        <li class="trust-item">SARIF 2.1.0</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="stat-band" aria-label="At a glance">
+    <div class="wrap stat-grid">
+      <div class="stat"><span class="stat-value">08</span><span class="stat-label">audited rules</span></div>
+      <div class="stat"><span class="stat-value">03</span><span class="stat-label">ODF formats</span></div>
+      <div class="stat"><span class="stat-value">00</span><span class="stat-label">network calls</span></div>
+      <div class="stat"><span class="stat-value">2011</span><span class="stat-label">AccessODF last release</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="gap" aria-labelledby="gap-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 01</span>
+        <span class="section-label">The gap</span>
+      </div>
+      <h2 class="section-title" id="gap-title">A mandated format with almost no accessibility tooling</h2>
+      <div class="prose">
+        <p>OpenDocument is a mandated format across large parts of EU and public-sector publishing — and it has effectively no accessibility tooling. The incumbents either need a desktop suite, are abandoned, or check a different format entirely.</p>
+      </div>
+      <div class="grid grid-3">
+        <article class="card lift gap-card">
+          <span class="card-index">incumbent 01</span>
+          <h3>AccessODF</h3>
+          <p>The only real ODF accessibility checker — a LibreOffice GUI extension written in Java, at version 0.1.0 Beta, with its last file dated 2011-11-08. It needs a desktop office suite and cannot run headless.</p>
+          <ul class="card-meta">
+            <li>LibreOffice GUI extension</li>
+            <li>Java · 0.1.0 Beta</li>
+            <li>last file 2011-11-08</li>
+          </ul>
+        </article>
+        <article class="card lift gap-card">
+          <span class="card-index">incumbent 02</span>
+          <h3>ODFBetter / ODF_Accessibility_Tester</h3>
+          <p>Both abandoned, with no maintained release and nothing that runs in a modern CI pipeline.</p>
+          <ul class="card-meta">
+            <li>abandoned</li>
+            <li>no CI story</li>
+          </ul>
+        </article>
+        <article class="card lift gap-card">
+          <span class="card-index">incumbent 03</span>
+          <h3><a href="https://github.com/BramAlkema/openxml-audit">openxml-audit</a></h3>
+          <p>Validates OpenDocument conformance — explicitly not accessibility. Different goal, different failure modes.</p>
+          <ul class="card-meta">
+            <li>conformance only</li>
+            <li>not an a11y checker</li>
+          </ul>
+        </article>
+        <article class="card lift gap-card">
+          <span class="card-index">incumbent 04</span>
+          <h3>OOXML tooling</h3>
+          <p>office-accessibility-checker, readrite, and filecap cover OOXML/XLSX, not ODF. None of them opens an .odt, .ods, or .odp package.</p>
+          <ul class="card-meta">
+            <li>DOCX / XLSX / PPTX</li>
+            <li>wrong format family</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout is-ok">
+        <span class="callout-title">The slot odflens fills</span>
+        <p>An offline, CI-invokable ODF accessibility auditor with no LibreOffice, no Java, and no GUI — the same rule engine in the terminal and in your browser.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features" aria-labelledby="features-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 02</span>
+        <span class="section-label">Capabilities</span>
+      </div>
+      <h2 class="section-title" id="features-title">Built to run where the documents already are</h2>
+      <div class="grid grid-3">
+        <div class="card lift">
+          <span class="card-glyph" aria-hidden="true">OFF</span>
+          <h3>Offline by design</h3>
+          <p>No network code. Files are parsed locally and never uploaded — safe on air-gapped machines and in CI containers with egress blocked.</p>
+        </div>
+        <div class="card lift">
+          <span class="card-glyph" aria-hidden="true">NS</span>
+          <h3>Namespace-aware</h3>
+          <p>Matches namespaced keys (<code>text:h</code>, <code>draw:frame</code>, <code>svg:title</code>) so the rules read the same regardless of the prefix LibreOffice chose.</p>
+        </div>
+        <div class="card lift">
+          <span class="card-glyph" aria-hidden="true">CLI</span>
+          <h3>CI-friendly CLI</h3>
+          <p>Audit files or directories, emit JSON or text, and gate the build with <code>--fail-on</code>.</p>
+        </div>
+        <div class="card lift">
+          <span class="card-glyph" aria-hidden="true">SRF</span>
+          <h3>SARIF 2.1.0</h3>
+          <p>Each issue becomes a SARIF result, so findings show up as annotations in GitHub code scanning, VS Code, and other SARIF-aware viewers.</p>
+        </div>
+        <div class="card lift">
+          <span class="card-glyph" aria-hidden="true">LIB</span>
+          <h3>Library API</h3>
+          <p>Call <code>audit(bytes, name)</code> directly and get back <code>{ file, kind, issues, counts }</code>.</p>
+        </div>
+        <div class="card lift">
+          <span class="card-glyph" aria-hidden="true">KND</span>
+          <h3>Kind detection</h3>
+          <p>Detects ODT, ODS, and ODP from the package <code>mimetype</code>, then falls back to the body element.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 03</span>
+        <span class="section-label">Method</span>
+      </div>
+      <h2 class="section-title" id="how-title">How it works</h2>
+      <ol class="steps">
+        <li class="step">
+          <h3>Open the package</h3>
+          <p>fflate unzips the ODF container; <code>mimetype</code> and <code>META-INF/manifest.xml</code> confirm what kind of document it is.</p>
+        </li>
+        <li class="step">
+          <h3>Detect the kind</h3>
+          <p>ODT, ODS, or ODP is read from the package mimetype first, then from the body element as a fallback.</p>
+        </li>
+        <li class="step">
+          <h3>Parse namespace-aware</h3>
+          <p><code>content.xml</code>, <code>styles.xml</code>, and <code>meta.xml</code> are walked with a namespace-aware <code>findAll</code>, so prefix choice never changes the result.</p>
+        </li>
+        <li class="step">
+          <h3>Report</h3>
+          <p>Rules produce issues with a code, severity, WCAG mapping, and location — emitted as text, JSON, or SARIF 2.1.0.</p>
+        </li>
+      </ol>
+      <div class="pane">
+        <div class="pane-bar">
+          <span class="pane-dot" aria-hidden="true"></span>
+          <span class="pane-dot" aria-hidden="true"></span>
+          <span class="pane-dot" aria-hidden="true"></span>
+          <span class="pane-title">odflens pipeline</span>
+        </div>
+        <pre class="pane-code"><code>.odt/.ods/.odp ──unzip (fflate)──▶ mimetype + META-INF/manifest.xml
+                                  ├── kind detection (mimetype, then body element)
+                                  └── content.xml / styles.xml / meta.xml
+                                        └── namespace-aware findAll + rules
+                                              └── JSON / text report</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="rules" aria-labelledby="rules-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 04</span>
+        <span class="section-label">Rule set</span>
+      </div>
+      <h2 class="section-title" id="rules-title">Rules</h2>
+      <div class="table-wrap">
+        <table class="rule-table">
+          <caption>Rule codes, severities, and the WCAG success criteria they map to.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Severity</th>
+              <th scope="col">WCAG</th>
+              <th scope="col">Check</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>ODF-LANG-001</td><td><span class="chip chip-error">error</span></td><td>3.1.1</td><td>No document language (<code>office:language</code> / <code>fo:language</code>)</td></tr>
+            <tr><td>ODF-TITLE-002</td><td><span class="chip chip-error">error</span></td><td>—</td><td>No non-empty <code>dc:title</code> in <code>meta.xml</code></td></tr>
+            <tr><td>ODF-ALT-003</td><td><span class="chip chip-error">error</span></td><td>1.1.1</td><td>Image frame without <code>svg:title</code> or <code>svg:desc</code></td></tr>
+            <tr><td>ODF-HEAD-004</td><td><span class="chip chip-warning">warning</span></td><td>1.3.1</td><td>Heading outline levels skip</td></tr>
+            <tr><td>ODF-HEAD-005</td><td><span class="chip chip-warning">warning</span></td><td>1.3.1</td><td>Body text but no headings</td></tr>
+            <tr><td>ODF-TBL-006</td><td><span class="chip chip-error">error</span></td><td>1.3.1</td><td>Table with rows but no <code>table:table-header-rows</code></td></tr>
+            <tr><td>ODF-LINK-007</td><td><span class="chip chip-warning">warning</span></td><td>2.4.4</td><td>Link whose text is a raw URL</td></tr>
+            <tr><td>ODF-IMG-008</td><td><span class="chip chip-info">info</span></td><td>1.1.1</td><td>Image referenced over <code>http(s)://</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p><code>ODF-000</code> (info) is reported when the package is unreadable or has no <code>content.xml</code>. Audit exits 1 on error-severity issues by default; <code>--fail-on warning|info|none</code> changes the gate threshold.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="install" aria-labelledby="install-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 05</span>
+        <span class="section-label">Getting started</span>
+      </div>
+      <h2 class="section-title" id="install-title">Install</h2>
+      <div class="prose">
+        <p>odflens is a Bun + TypeScript package. Add it to a project or run it ad hoc.</p>
+      </div>
+      <pre class="code"><code>bun add -d odflens
+
+# or run it without installing
+bunx odflens report.odt</code></pre>
+    </div>
+  </section>
+
+  <section class="section" id="usage" aria-labelledby="usage-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 06</span>
+        <span class="section-label">Interface</span>
+      </div>
+      <h2 class="section-title" id="usage-title">CLI and library usage</h2>
+      <pre class="code"><code># Audit one or more files
+odflens report.odt sheet.ods deck.odp
+
+# A whole directory
+odflens --dir docs/
+
+# Machine-readable
+odflens report.odt --json
+
+# Emit SARIF for GitHub code scanning
+odflens report.odt --sarif odflens.sarif</code></pre>
+      <div class="prose">
+        <p>Or call it as a library:</p>
+        <pre class="code"><code>import { audit } from "odflens";
+
+const result = audit(bytes, "report.odt");
+// { file, kind: "odt", issues, counts }</code></pre>
+        <p>The CLI exits 1 on any error-severity issue and 0 otherwise.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="sarif" aria-labelledby="sarif-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 07</span>
+        <span class="section-label">Interop</span>
+      </div>
+      <h2 class="section-title" id="sarif-title">SARIF and GitHub code scanning</h2>
+      <div class="prose">
+        <p>odflens emits SARIF 2.1.0, so results show up as annotations in GitHub code scanning, VS Code, and any other SARIF-aware viewer. Each issue becomes a result with <code>ruleId</code> set to the ODF rule code and a <code>level</code> mapped from its severity.</p>
+      </div>
+      <pre class="code"><code>- name: Audit ODF documents
+  run: odflens --dir public/docs --sarif odflens.sarif
+
+- name: Upload SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: odflens.sarif</code></pre>
+      <div class="prose">
+        <p>Use <code>--fail-on</code> to tune when the job itself fails (<code>error</code> by default): <code>odflens --dir public/docs --sarif odflens.sarif --fail-on warning</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="limitations" aria-labelledby="limitations-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 08</span>
+        <span class="section-label">Scope</span>
+      </div>
+      <h2 class="section-title" id="limitations-title">Limitations</h2>
+      <div class="callout is-warn">
+        <span class="callout-title">What it does not do</span>
+        <p>Static XML checks; it does not render or convert the document. ODS and ODP rule coverage is a subset of the ODT coverage. Remote images are flagged, not fetched — and there is no network code, so files are parsed locally and never uploaded.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 09</span>
+        <span class="section-label">Questions</span>
+      </div>
+      <h2 class="section-title" id="faq-title">FAQ</h2>
+      <div class="faq">
+        <details class="faq-item">
+          <summary class="faq-q">Does it need LibreOffice or Java?</summary>
+          <p class="faq-a">No. odflens is pure TypeScript: it unzips the package with fflate and parses the XML directly, so it runs headless on any machine that has Bun — including CI containers without an office suite.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">Are my documents uploaded anywhere?</summary>
+          <p class="faq-a">No. There is no network code at all. The CLI parses files locally, and the browser playground uses the same bundle in-page — nothing leaves your machine.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">Which formats are covered?</summary>
+          <p class="faq-a">ODT (text), ODS (spreadsheet), and ODP (presentation). Kind detection reads the package mimetype and falls back to the body element; ODS and ODP coverage is a subset of the ODT rule set.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">How does it fit into CI?</summary>
+          <p class="faq-a">Run <code>odflens --dir public/docs --quiet</code> as a gate, or emit SARIF with <code>--sarif</code> and upload it with <code>github/codeql-action/upload-sarif</code>. <code>--fail-on warning|info|none</code> controls the exit threshold.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">Why not just use AccessODF?</summary>
+          <p class="faq-a">AccessODF is a LibreOffice GUI extension in Java, at 0.1.0 Beta, last filed in 2011. It needs a desktop suite and cannot run headless, which makes it unusable as an automated gate.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">Does it render or convert documents?</summary>
+          <p class="faq-a">No. It is a static XML auditor — it checks structure, language, alt text, heading order, tables, and links, and reports issues. It never renders, converts, or fixes a file.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section playground" id="playground" aria-labelledby="playground-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-num" aria-hidden="true">§ 10</span>
+        <span class="section-label">Playground</span>
+      </div>
+      <h2 class="section-title" id="playground-title">Try odflens</h2>
+      <p class="muted">Audit a real .odt, .ods, or .odp file right here. The audit runs entirely in your browser with the same rule engine as the CLI — nothing is uploaded.</p>
+
+      <div class="dropzone" id="dropzone">
+        <p>
+          <label for="odf-file">Choose an .odt, .ods, or .odp file</label>
+        </p>
+        <p>
+          <input type="file" id="odf-file" accept=".odt,.ods,.odp">
+        </p>
+        <p class="muted">You can also drag a file onto this box. Nothing is sent anywhere.</p>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite">No document audited yet.</p>
+
+      <div id="error" class="callout is-warn" style="display: none">
+        <p id="error-text"></p>
+      </div>
+
+      <div id="summary-wrap" style="display: none">
+        <div class="badge-row" id="summary" aria-label="Issue counts"></div>
+      </div>
+
+      <div id="issues-wrap" class="table-wrap" style="display: none">
+        <table class="rule-table">
+          <caption id="issues-caption">Issues</caption>
+          <thead>
+            <tr>
+              <th scope="col">Severity</th>
+              <th scope="col">Code</th>
+              <th scope="col">Location</th>
+              <th scope="col">Message</th>
+            </tr>
+          </thead>
+          <tbody id="issues-body"></tbody>
+        </table>
+      </div>
+
+      <p id="sarif-wrap" style="display: none">
+        <button type="button" class="btn btn-ghost" id="download-sarif">Download SARIF</button>
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span class="footer-edge" aria-hidden="true"></span>
+  <div class="wrap">
+    <nav aria-label="The suite">
+      <ul class="footer-links">
+        <li><a href="https://booklens-srivtx.vercel.app">booklens</a></li>
+        <li><a href="https://officelens-srivtx.vercel.app">officelens</a></li>
+        <li><a href="https://iconlens-srivtx.vercel.app">iconlens</a></li>
+        <li><a href="https://waxseal-srivtx.vercel.app">waxseal</a></li>
+        <li><a href="https://github.com/srivtx/odflens">repo</a></li>
+        <li><a href="https://github.com/srivtx/odflens/blob/main/LICENSE">MIT license</a></li>
+      </ul>
+    </nav>
+    <p class="footer-meta">
+      <span class="muted">Part of the Lens suite for offline document tooling.</span>
+      <a class="to-top" href="#top">↑ back to top</a>
+    </p>
+  </div>
+</footer>
+
+<script src="assets/demo.js"></script>
+<script src="assets/site.js" defer></script>
+<script>
+(function () {
+  "use strict";
+
+  var state = { result: null };
+
+  var dropzone = document.getElementById("dropzone");
+  var fileInput = document.getElementById("odf-file");
+  var status = document.getElementById("status");
+  var errorBox = document.getElementById("error");
+  var errorText = document.getElementById("error-text");
+  var summaryWrap = document.getElementById("summary-wrap");
+  var summary = document.getElementById("summary");
+  var issuesWrap = document.getElementById("issues-wrap");
+  var issuesBody = document.getElementById("issues-body");
+  var issuesCaption = document.getElementById("issues-caption");
+  var sarifWrap = document.getElementById("sarif-wrap");
+  var sarifButton = document.getElementById("download-sarif");
+
+  function messageOf(error) {
+    return error && error.message ? error.message : String(error);
+  }
+
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function badge(label, modifier) {
+    var span = document.createElement("span");
+    span.className = modifier ? "badge " + modifier : "badge";
+    span.textContent = label;
+    return span;
+  }
+
+  function setBusy(busy) {
+    status.classList.toggle("is-loading", !!busy);
+    status.setAttribute("aria-busy", busy ? "true" : "false");
+  }
+
+  function showError(message) {
+    state.result = null;
+    setBusy(false);
+    errorText.textContent = message;
+    errorBox.style.display = "block";
+    summaryWrap.style.display = "none";
+    issuesWrap.style.display = "none";
+    sarifWrap.style.display = "none";
+    status.textContent = message;
+  }
+
+  function render(result) {
+    state.result = result;
+    setBusy(false);
+    errorBox.style.display = "none";
+
+    var counts = result.counts || { error: 0, warning: 0, info: 0 };
+    clear(summary);
+    summary.appendChild(badge("errors " + (counts.error || 0), "is-err"));
+    summary.appendChild(badge("warnings " + (counts.warning || 0), "is-warn"));
+    summary.appendChild(badge("info " + (counts.info || 0), null));
+    summaryWrap.style.display = "block";
+
+    clear(issuesBody);
+    var issues = result.issues || [];
+    issuesCaption.textContent =
+      issues.length === 1 ? "1 issue" : issues.length + " issues";
+
+    if (issues.length === 0) {
+      var emptyRow = document.createElement("tr");
+      var emptyCell = document.createElement("td");
+      emptyCell.colSpan = 4;
+      emptyCell.textContent = "No issues found.";
+      emptyRow.appendChild(emptyCell);
+      issuesBody.appendChild(emptyRow);
+    } else {
+      issues.forEach(function (issue) {
+        var row = document.createElement("tr");
+        var values = [
+          issue.severity,
+          issue.code,
+          issue.location ? issue.location : "\u2014",
+          issue.message,
+        ];
+        values.forEach(function (value) {
+          var cell = document.createElement("td");
+          cell.textContent = value === undefined ? "" : String(value);
+          row.appendChild(cell);
+        });
+        issuesBody.appendChild(row);
+      });
+    }
+
+    issuesWrap.style.display = "block";
+    sarifWrap.style.display = "block";
+    status.textContent =
+      (result.file || "Document") +
+      ": " +
+      (counts.error || 0) +
+      " errors, " +
+      (counts.warning || 0) +
+      " warnings, " +
+      (counts.info || 0) +
+      " info.";
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    var name = file.name || "document.odt";
+    var dot = name.lastIndexOf(".");
+    var ext = dot >= 0 ? name.slice(dot + 1).toLowerCase() : "";
+
+    if (ext !== "odt" && ext !== "ods" && ext !== "odp") {
+      showError("Unsupported file type \u201c." + (ext || "unknown") + "\u201d. Use .odt, .ods, or .odp.");
+      return;
+    }
+
+    if (typeof OdfLens === "undefined" || typeof OdfLens.audit !== "function") {
+      showError("The odflens demo bundle did not load.");
+      return;
+    }
+
+    setBusy(true);
+    status.textContent = "Auditing " + name + "\u2026";
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var bytes = new Uint8Array(reader.result);
+        render(OdfLens.audit(bytes, name));
+      } catch (error) {
+        showError("Could not audit " + name + ": " + messageOf(error));
+      }
+    };
+    reader.onerror = function () {
+      showError("Could not read " + name + ".");
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function downloadSarif() {
+    if (!state.result) return;
+    var log;
+    if (typeof OdfLens.toSarif === "function") {
+      log = OdfLens.toSarif(state.result, "odflens", "0.1.0");
+    } else {
+      log = {
+        version: "2.1.0",
+        runs: [{ tool: { driver: { name: "odflens" } }, results: state.result.issues || [] }],
+      };
+    }
+    var blob = new Blob([JSON.stringify(log, null, 2)], {
+      type: "application/sarif+json",
+    });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "odflens.sarif";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files && fileInput.files.length > 0) {
+      handleFile(fileInput.files[0]);
+    }
+  });
+
+  sarifButton.addEventListener("click", downloadSarif);
+
+  dropzone.addEventListener("dragover", function (event) {
+    event.preventDefault();
+    dropzone.classList.add("is-drag");
+  });
+
+  dropzone.addEventListener("dragleave", function () {
+    dropzone.classList.remove("is-drag");
+  });
+
+  dropzone.addEventListener("drop", function (event) {
+    event.preventDefault();
+    dropzone.classList.remove("is-drag");
+    var transfer = event.dataTransfer;
+    if (transfer && transfer.files && transfer.files.length > 0) {
+      handleFile(transfer.files[0]);
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -35,7 +35,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "make-fixtures": "bun src/fixtures.ts"
+    "make-fixtures": "bun src/fixtures.ts",
+    "build:site": "node scripts/build-site.mjs",
+    "check:site": "node scripts/check-site.mjs"
   },
   "license": "MIT",
   "engines": {
@@ -51,7 +53,8 @@
     "CHANGELOG.md"
   ],
   "devDependencies": {
-    "@types/bun": "^1.4.2"
+    "@types/bun": "^1.4.2",
+    "esbuild": "^0.25.0"
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
