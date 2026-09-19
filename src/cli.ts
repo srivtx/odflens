@@ -38,16 +38,20 @@ Usage:
 Options:
   --dir <path>          Audit every .odt/.ods/.odp file in <path> (non-recursive, sorted)
   --json                Print a single JSON array of results to stdout
-  --quiet               Print a single summary line per file
+  -q, --quiet           Print a single summary line per file
   --sarif <path>        Write a SARIF 2.1.0 report to <path>
   --fail-on <level>     Exit 1 on error, warning, info, or none (default: error)
-  --version             Print the odflens version
+  -v, --version         Print the odflens version
   -h, --help            Show this help
+  --                    Treat every following argument as an input file
+
+Options that take a value also accept the --option=<value> form. A --dir
+with no matching .odt/.ods/.odp files is an error (exit 2).
 
 Exit codes:
   0  no findings at or above --fail-on
   1  findings at or above --fail-on
-  2  invalid usage, or a document that cannot be read/parsed as ODF
+  2  invalid usage, an empty --dir, or a document that cannot be read/parsed as ODF
   3  an input file or output report could not be read/written
 `;
 
@@ -83,26 +87,34 @@ export function parseArgs(argv: string[]): Options {
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
+    if (arg === undefined) continue;
+    if (arg === "--") {
+      for (let j = i + 1; j < argv.length; j++) {
+        const rest = argv[j];
+        if (rest !== undefined) opts.files.push(rest);
+      }
+      break;
+    }
     if (arg === "--json") {
       opts.json = true;
-    } else if (arg === "--quiet") {
+    } else if (arg === "--quiet" || arg === "-q") {
       opts.quiet = true;
-    } else if (arg === "--version") {
+    } else if (arg === "--version" || arg === "-v") {
       opts.version = true;
-    } else if (arg === "--dir") {
-      const next = argv[++i];
-      if (next === undefined) {
+    } else if (arg === "--dir" || arg.startsWith("--dir=")) {
+      const value = arg.startsWith("--dir=") ? arg.slice("--dir=".length) : argv[++i];
+      if (value === undefined || value.length === 0 || value.startsWith("-")) {
         throw new Error("--dir requires a path argument");
       }
-      opts.dir = next;
-    } else if (arg === "--sarif" || arg?.startsWith("--sarif=")) {
+      opts.dir = value;
+    } else if (arg === "--sarif" || arg.startsWith("--sarif=")) {
       const inline = arg.startsWith("--sarif=") ? arg.slice("--sarif=".length) : null;
       const value = inline ?? argv[++i];
-      if (value === undefined || value === "") {
+      if (value === undefined || value === "" || value.startsWith("-")) {
         throw new Error("--sarif requires a path argument");
       }
       opts.sarif = value;
-    } else if (arg === "--fail-on" || arg?.startsWith("--fail-on=")) {
+    } else if (arg === "--fail-on" || arg.startsWith("--fail-on=")) {
       const inline = arg.startsWith("--fail-on=") ? arg.slice("--fail-on=".length) : null;
       const value = inline ?? argv[++i];
       if (value === undefined) {
@@ -114,9 +126,9 @@ export function parseArgs(argv: string[]): Options {
       opts.failOn = value as FailOn;
     } else if (arg === "-h" || arg === "--help") {
       opts.help = true;
-    } else if (arg !== undefined && arg.startsWith("-")) {
+    } else if (arg.startsWith("-")) {
       throw new Error(`Unknown option: ${arg}`);
-    } else if (arg !== undefined) {
+    } else {
       opts.files.push(arg);
     }
   }
@@ -163,7 +175,7 @@ export async function run(argv: string[]): Promise<number> {
   try {
     opts = parseArgs(argv);
   } catch (err) {
-    console.error(errorMessage(err));
+    console.error(`odflens: ${errorMessage(err)}`);
     console.error(USAGE);
     return 2;
   }
@@ -182,14 +194,15 @@ export async function run(argv: string[]): Promise<number> {
   try {
     files = collectFiles(opts);
   } catch (err) {
-    console.error(`Could not read directory ${opts.dir}: ${errorMessage(err)}`);
+    console.error(`odflens: Could not read directory ${opts.dir}: ${errorMessage(err)}`);
     return 2;
   }
 
   if (files.length === 0) {
     if (opts.dir !== null) {
-      console.error(`No ODF files found in ${opts.dir}`);
-      return 0;
+      console.error(`odflens: no ODF files found in "${opts.dir}"`);
+    } else {
+      console.error("odflens: no input files");
     }
     console.error(USAGE);
     return 2;
@@ -206,7 +219,7 @@ export async function run(argv: string[]): Promise<number> {
       data = new Uint8Array(await Bun.file(file).arrayBuffer());
     } catch (err) {
       const message = errorMessage(err);
-      console.error(`${file}: ${message}`);
+      console.error(`odflens: cannot read ${file}: ${message}`);
       hadIo = true;
       const result = unreadableResult(file, message);
       results.push(result);
@@ -241,7 +254,7 @@ export async function run(argv: string[]): Promise<number> {
     try {
       await writeSarif(opts.sarif, results, "odflens", VERSION);
     } catch (err) {
-      console.error(`Could not write SARIF report: ${errorMessage(err)}`);
+      console.error(`odflens: cannot write SARIF report to ${opts.sarif}: ${errorMessage(err)}`);
       return 3;
     }
   }

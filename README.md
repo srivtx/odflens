@@ -11,7 +11,7 @@
 [![license](https://img.shields.io/badge/license-MIT-0f766e)](LICENSE)
 [![runtime](https://img.shields.io/badge/runtime-Bun-14151A?logo=bun&logoColor=white)](https://bun.sh)
 [![types](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
-[![tests](https://img.shields.io/badge/tests-46-0f766e)](#testing)
+[![tests](https://img.shields.io/badge/tests-59-0f766e)](#testing)
 [![network](https://img.shields.io/badge/network-none-0f766e)](#privacy)
 
 </div>
@@ -98,16 +98,25 @@ odflens report.odt sheet.ods deck.odp
 
 # A whole directory
 odflens --dir docs/
+odflens --dir=docs/          # inline form
 
 # Machine-readable
 odflens report.odt --json
 
-# Summary only
+# Summary only (short and long forms)
 odflens report.odt --quiet
+odflens report.odt -q
+
+# Version
+odflens -v
+
+# Treat everything after -- as a file path, even if it starts with a dash
+odflens -- ./report.odt
 ```
 
 `--json` prints a single JSON array of all results, so `odflens --json a.odt b.odt`
-is valid JSON.
+is valid JSON. `-q` is short for `--quiet` and `-v` is short for `--version`.
+Long options that take a value also accept the `--opt=<value>` form.
 
 Exit codes:
 
@@ -115,11 +124,13 @@ Exit codes:
 |---|---|
 | `0` | No findings at or above `--fail-on` |
 | `1` | Findings at or above `--fail-on` |
-| `2` | Invalid usage, or a document that cannot be read/parsed as ODF |
+| `2` | Invalid usage, an empty `--dir`, or a document that cannot be read/parsed as ODF |
 | `3` | An input file or the `--sarif` output could not be read/written |
 
 `--fail-on none` suppresses exit code `1` for findings; fatal parse failures
-(`2`) and I/O errors (`3`) still fail.
+(`2`) and I/O errors (`3`) still fail. A `--dir` that contains no
+`.odt`/`.ods`/`.odp` files is treated as invalid usage (`2`), not success.
+Error lines on stderr are prefixed with `odflens: `.
 
 ### Library
 
@@ -132,7 +143,22 @@ const result = audit(bytes, "report.odt");
 
 The package ships **TypeScript source** and is intended to be consumed through
 Bun (or any bundler that resolves TypeScript). `openOdf(data, limits)` accepts
-optional per-entry and total decompression ceilings.
+optional decompression ceilings.
+
+### Decompression limits
+
+Untrusted packages are bounded on four axes, all overridable through the
+`OdfLimits` argument to `openOdf`:
+
+| Limit | Default | Enforced by |
+|---|---|---|
+| `maxEntryBytes` (per member, uncompressed) | 64 MiB | ZIP filter |
+| `maxTotalBytes` (all members, uncompressed) | 512 MiB | ZIP filter, re-checked on the decoded bytes |
+| `maxMembers` (file entries; directories excluded) | 65,535 | ZIP filter |
+| unsafe member names (`/`, `..`, `.`, `\`, drive letters) | rejected | ZIP filter |
+
+The member cap counts every non-directory entry, so an archive made of millions
+of zero-byte entries is rejected before any of them is decompressed.
 
 ## Rules
 
@@ -223,7 +249,7 @@ await writeSarif("odflens.sarif", [result], "odflens", "0.2.0");
 
 | Gate | Result |
 |---|---|
-| `bun test` | 46 tests |
+| `bun test` | 59 tests |
 | `bunx tsc --noEmit` | clean (strict) |
 | fixtures | `bun run make-fixtures` writes good/bad ODT, ODS, and ODP samples |
 

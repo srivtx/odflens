@@ -116,9 +116,9 @@ describe("P0-7: malformed XML is surfaced", () => {
 describe("P0-8: decompression limits", () => {
   test("per-entry limit is enforced with a clear message", () => {
     const big = zipSync({ "content.xml": strToU8("x".repeat(5000)) });
-    expect(() => openOdf(big, { maxEntryBytes: 1000, maxTotalBytes: 10 * 1024 * 1024 })).toThrow(
-      /per-entry limit/,
-    );
+    expect(() =>
+      openOdf(big, { maxEntryBytes: 1000, maxTotalBytes: 10 * 1024 * 1024, maxMembers: 100 }),
+    ).toThrow(/per-entry limit/);
   });
 
   test("total limit is enforced with a clear message", () => {
@@ -126,13 +126,60 @@ describe("P0-8: decompression limits", () => {
       a: strToU8("a".repeat(600)),
       b: strToU8("b".repeat(600)),
     });
-    expect(() => openOdf(big, { maxEntryBytes: 10 * 1024 * 1024, maxTotalBytes: 1000 })).toThrow(
-      /total limit/,
-    );
+    expect(() =>
+      openOdf(big, { maxEntryBytes: 10 * 1024 * 1024, maxTotalBytes: 1000, maxMembers: 100 }),
+    ).toThrow(/total limit/);
   });
 
   test("the default limits are finite", () => {
     expect(DEFAULT_LIMITS.maxEntryBytes).toBeGreaterThan(0);
     expect(Number.isFinite(DEFAULT_LIMITS.maxTotalBytes)).toBe(true);
+    expect(DEFAULT_LIMITS.maxMembers).toBeGreaterThan(0);
+  });
+});
+
+describe("member-count cap", () => {
+  test("a package with a huge number of entries is rejected", () => {
+    const entries: Record<string, Uint8Array> = {};
+    for (let i = 0; i < 5000; i++) {
+      entries[`part-${i}.xml`] = new Uint8Array(0);
+    }
+    const bomb = zipSync(entries);
+    expect(() =>
+      openOdf(bomb, { maxEntryBytes: 1024, maxTotalBytes: 1024 * 1024, maxMembers: 1000 }),
+    ).toThrow(/more than 1000 entries/);
+  });
+
+  test("a huge number of zero-byte entries does not pass the cap", () => {
+    const entries: Record<string, Uint8Array> = {};
+    for (let i = 0; i < 20000; i++) {
+      entries[`e/${i}.xml`] = new Uint8Array(0);
+    }
+    const bomb = zipSync(entries);
+    expect(() =>
+      openOdf(bomb, { maxEntryBytes: 1024, maxTotalBytes: 1024, maxMembers: 10000 }),
+    ).toThrow(/more than 10000 entries/);
+  });
+});
+
+describe("path safety", () => {
+  test("a parent-directory traversal member is rejected", () => {
+    const evil = zipSync({ "../evil.xml": strToU8("x") });
+    expect(() => openOdf(evil)).toThrow(/unsafe path segment/);
+  });
+
+  test("an absolute member path is rejected", () => {
+    const evil = zipSync({ "/tmp/evil.xml": strToU8("x") });
+    expect(() => openOdf(evil)).toThrow(/absolute path/);
+  });
+
+  test("a nested .. segment is rejected", () => {
+    const evil = zipSync({ "Pictures/../../escape.xml": strToU8("x") });
+    expect(() => openOdf(evil)).toThrow(/unsafe path segment/);
+  });
+
+  test("a backslash member path is rejected", () => {
+    const evil = zipSync({ "Pictures\\..\\evil.xml": strToU8("x") });
+    expect(() => openOdf(evil)).toThrow(/backslash/);
   });
 });

@@ -14,7 +14,7 @@ describe("P1-9: package metadata", () => {
   });
 
   test("the exports map exposes types and an import entry", () => {
-    expect(pkg.types).toBe("./src/index.ts");
+    expect(pkg.types).toBe("src/index.ts");
     expect(pkg.exports["."].types).toBe("./src/index.ts");
     expect(pkg.exports["."].import).toBe("./src/index.ts");
   });

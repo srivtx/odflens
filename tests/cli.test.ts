@@ -1,10 +1,10 @@
 import { describe, expect, spyOn, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { zipSync } from "fflate";
 import { audit } from "../src/audit";
-import { run } from "../src/cli";
+import { VERSION, parseArgs, run } from "../src/cli";
 import { makeBadOdt, makeBadOds, makeGoodOdt, makeGoodOdp, makeGoodOds } from "../src/fixtures";
 import { formatText } from "../src/report";
 
@@ -87,11 +87,61 @@ describe("P1-5: --dir handling", () => {
     expect(err).not.toContain("Usage:");
   });
 
-  test("an empty directory exits 0 and says no ODF files were found", async () => {
+  test("an empty directory exits 2 with usage and a prefixed message", async () => {
     const empty = mkdtempSync(join(tmpdir(), "odflens-empty-"));
     const { code, err } = await runCapture(["--dir", empty]);
+    expect(code).toBe(2);
+    expect(err).toContain("odflens: no ODF files found");
+    expect(err).toContain("Usage:");
+  });
+});
+
+describe("CLI contract: short flags and inline forms", () => {
+  test("-v prints exactly the version string", async () => {
+    const { code, out } = await runCapture(["-v"]);
     expect(code).toBe(0);
-    expect(err).toContain("No ODF files found");
+    expect(out).toBe(VERSION);
+  });
+
+  test("--version prints exactly the version string", async () => {
+    const { code, out } = await runCapture(["--version"]);
+    expect(code).toBe(0);
+    expect(out).toBe(VERSION);
+  });
+
+  test("-q is accepted as the short form of --quiet", async () => {
+    const path = writeFile("quiet.odt", makeGoodOdt());
+    const short = await runCapture(["-q", path]);
+    const long = await runCapture(["--quiet", path]);
+    expect(short.code).toBe(long.code);
+    expect(short.out).toBe(`${basename(path)}: 0 error(s), 0 warning(s), 0 info`);
+    expect(short.out).toBe(long.out);
+  });
+
+  test("--dir=<path> inline form is accepted", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "odflens-inline-"));
+    writeFileSync(join(dir, "good.odt"), makeGoodOdt());
+    const { code } = await runCapture([`--dir=${dir}`]);
+    expect(code).toBe(0);
+  });
+
+  test("--dir= with an empty value is invalid usage", async () => {
+    const { code, err } = await runCapture(["--dir="]);
+    expect(code).toBe(2);
+    expect(err).toContain("odflens: --dir requires a path argument");
+  });
+
+  test("-- ends option parsing so the rest are literal file paths", async () => {
+    const parsed = parseArgs(["--", "-v", "--json", "report.odt"]);
+    expect(parsed.version).toBe(false);
+    expect(parsed.json).toBe(false);
+    expect(parsed.files).toEqual(["-v", "--json", "report.odt"]);
+  });
+
+  test("an unknown option is usage error 2, prefixed with odflens:", async () => {
+    const { code, err } = await runCapture(["--nope"]);
+    expect(code).toBe(2);
+    expect(err).toContain("odflens: Unknown option: --nope");
   });
 });
 

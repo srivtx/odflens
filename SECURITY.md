@@ -27,12 +27,27 @@ backports.
   all run in-process and locally.
 - **Untrusted input.** An ODF file is treated as hostile: ZIP members and XML
   parts are parsed defensively, and a malformed, deeply nested, or oversized
-  package must fail safely rather than escape the working directory or exhaust
+  package fails safely rather than escapes the working directory or exhausts
   the process.
 - **No code execution from input.** Macros, scripts, and external links in a
   document are never evaluated or followed.
 - **No suite dependency.** Auditing does not shell out to LibreOffice or Java,
   so there is no desktop application in the trust boundary.
+
+## Resource limits
+
+`openOdf` bounds every package before and after decompression. The defaults are:
+
+| Limit | Default | Notes |
+| --- | --- | --- |
+| Per-entry uncompressed size | 64 MiB | Rejected by the ZIP filter |
+| Total uncompressed size | 512 MiB | Summed during filtering and re-checked against the decoded bytes after extraction |
+| Member count | 65,535 file entries | Directories excluded; rejects archives made of huge numbers of zero-byte entries |
+| Member names | relative only | Absolute paths, Windows drive letters, backslashes, and `.`/`..`/empty segments are rejected |
+
+These are configurable via the `OdfLimits` argument to `openOdf`; the defaults
+are the ceilings enforced by the CLI. A package that trips a limit is reported
+as a fatal `ODF-000` error and the CLI exits `2`.
 
 ## Reporting a vulnerability
 

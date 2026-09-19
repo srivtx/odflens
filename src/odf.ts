@@ -8,11 +8,14 @@ export interface OdfLimits {
   maxEntryBytes: number;
   /** Maximum combined uncompressed size of all entries, in bytes. */
   maxTotalBytes: number;
+  /** Maximum number of file entries (directories are not counted). */
+  maxMembers: number;
 }
 
 export const DEFAULT_LIMITS: OdfLimits = {
   maxEntryBytes: 64 * 1024 * 1024,
   maxTotalBytes: 512 * 1024 * 1024,
+  maxMembers: 65535,
 };
 
 function formatBytes(bytes: number): string {
@@ -21,16 +24,46 @@ function formatBytes(bytes: number): string {
   return `${bytes} B`;
 }
 
+/**
+ * Reject member names that could escape the package: absolute paths, Windows
+ * drive letters, backslashes, and any `.`/`..`/empty path segment.
+ */
+function assertSafeMemberName(name: string): void {
+  if (name.length === 0) {
+    throw new Error("Zip entry has an empty name.");
+  }
+  if (name.startsWith("/") || name.startsWith("\\") || /^[A-Za-z]:/.test(name)) {
+    throw new Error(`Zip entry has an absolute path: ${JSON.stringify(name)}.`);
+  }
+  if (name.includes("\\")) {
+    throw new Error(`Zip entry has a backslash in its path: ${JSON.stringify(name)}.`);
+  }
+  for (const segment of name.split("/")) {
+    if (segment === "" || segment === "." || segment === "..") {
+      throw new Error(`Zip entry has an unsafe path segment: ${JSON.stringify(name)}.`);
+    }
+  }
+}
+
 export function openOdf(data: Uint8Array, limits: OdfLimits = DEFAULT_LIMITS): OdfPackage {
   if (!(data instanceof Uint8Array) || data.length === 0) {
     throw new Error("Package is empty (0 bytes).");
   }
 
   let total = 0;
+  let members = 0;
   let files: Record<string, Uint8Array>;
   try {
     files = unzipSync(data, {
       filter(file: UnzipFileInfo): boolean {
+        if (file.name.endsWith("/")) return false;
+        assertSafeMemberName(file.name);
+        members += 1;
+        if (members > limits.maxMembers) {
+          throw new Error(
+            `Zip archive has more than ${limits.maxMembers} entries.`,
+          );
+        }
         if (file.originalSize > limits.maxEntryBytes) {
           throw new Error(
             `Zip entry "${file.name}" is ${formatBytes(file.originalSize)}, over the ` +
@@ -46,6 +79,14 @@ export function openOdf(data: Uint8Array, limits: OdfLimits = DEFAULT_LIMITS): O
         return true;
       },
     });
+
+    let decoded = 0;
+    for (const bytes of Object.values(files)) decoded += bytes.length;
+    if (decoded > limits.maxTotalBytes) {
+      throw new Error(
+        `Decoded package is over the ${formatBytes(limits.maxTotalBytes)} total limit.`,
+      );
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Could not read zip archive: ${message}`);
