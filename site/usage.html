@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage — odflens</title>
+<meta name="description" content="odflens install, CLI flags, exit codes, JSON output, and the TypeScript library API.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="Usage — odflens">
+<meta property="og:description" content="odflens install, CLI flags, exit codes, JSON output, and the TypeScript library API.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://odflens-srivtx.vercel.app/usage.html">
+<meta property="og:image" content="https://odflens-srivtx.vercel.app/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Usage — odflens">
+<meta name="twitter:description" content="odflens install, CLI flags, exit codes, JSON output, and the TypeScript library API.">
+<meta name="twitter:image" content="https://odflens-srivtx.vercel.app/assets/og.png">
+<link rel="canonical" href="https://odflens-srivtx.vercel.app/usage.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c3aed'/%3E%3Ccircle cx='14' cy='14' r='6.4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M19 19l6 6' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("odflens-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="odflens home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 32 32" focusable="false">
+          <circle cx="14" cy="14" r="8.4"></circle>
+          <line x1="20.4" y1="20.4" x2="27.5" y2="27.5"></line>
+          <circle cx="14" cy="14" r="3" style="fill:currentColor;stroke:none"></circle>
+        </svg>
+      </span>
+      <span class="brand__name">odflens</span>
+      <span class="brand__tag">OpenDocument accessibility audit</span>
+    </a>
+
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="index.html#playground">Playground</a>
+      <a href="https://github.com/srivtx/odflens">GitHub</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <div class="docs">
+      <nav class="docs__nav" aria-label="Documentation">
+        <h2>odflens</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html" aria-current="page">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <article class="docs__body">
+        <div class="docs__head">
+          <p class="eyebrow">Reference</p>
+          <h1>Usage</h1>
+          <p>The same rule set runs from the command line or from TypeScript. Both take an ODF package and return the same result object.</p>
+        </div>
+
+        <h2>Install</h2>
+        <p>odflens is not published to npm. Install it with the one-line script, or run it without installing.</p>
+        <div class="term" aria-label="Install commands">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">install</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="dim"># one-line install (installs the `odflens` binary)</span></span><span class="ln"><span class="p">$ </span><span class="cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/odflens/main/install.sh | sh</span></span><span class="ln"></span><span class="ln"><span class="dim"># or run once, without installing</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bunx github:srivtx/odflens#main report.odt</span></span><span class="ln"></span><span class="ln"><span class="dim"># add to a project as a dev dependency</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bun add -d github:srivtx/odflens</span></span><span class="ln"></span><span class="ln"><span class="dim"># install globally</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bun add -g github:srivtx/odflens</span></span><span class="ln"><span class="p">$ </span><span class="cmd">odflens report.odt</span></span></pre>
+        </div>
+
+        <h2>Command-line flags</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Every flag odflens accepts.</caption>
+            <thead>
+              <tr><th scope="col">Flag</th><th scope="col">Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>odflens &lt;files…&gt;</code></td><td>Audit one or more <code>.odt</code>, <code>.ods</code>, or <code>.odp</code> files.</td></tr>
+              <tr><td><code>--dir &lt;path&gt;</code></td><td>Audit every <code>.odt</code>/<code>.ods</code>/<code>.odp</code> file in <code>&lt;path&gt;</code> (non-recursive, sorted).</td></tr>
+              <tr><td><code>--json</code></td><td>Print a single JSON array of results to stdout.</td></tr>
+              <tr><td><code>-q</code>, <code>--quiet</code></td><td>Print a single summary line per file.</td></tr>
+              <tr><td><code>--sarif &lt;path&gt;</code></td><td>Write a SARIF 2.1.0 report to <code>&lt;path&gt;</code>.</td></tr>
+              <tr><td><code>--fail-on &lt;level&gt;</code></td><td><code>error</code> (default), <code>warning</code>, <code>info</code>, or <code>none</code> — the exit-code threshold.</td></tr>
+              <tr><td><code>-v</code>, <code>--version</code></td><td>Print the odflens version.</td></tr>
+              <tr><td><code>-h</code>, <code>--help</code></td><td>Show help.</td></tr>
+              <tr><td><code>--</code></td><td>Treat every following argument as an input file.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Options that take a value also accept the <code>--option=&lt;value&gt;</code> form. A <code>--dir</code> with no matching <code>.odt</code>/<code>.ods</code>/<code>.odp</code> files is an error (exit <code>2</code>).</p>
+
+        <h2>Examples</h2>
+        <div class="term" aria-label="Example commands">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">examples</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="dim"># audit one or more files</span></span><span class="ln"><span class="p">$ </span><span class="cmd">odflens report.odt sheet.ods deck.odp</span></span><span class="ln"></span><span class="ln"><span class="dim"># a whole directory</span></span><span class="ln"><span class="p">$ </span><span class="cmd">odflens --dir docs/</span></span><span class="ln"></span><span class="ln"><span class="dim"># machine-readable output</span></span><span class="ln"><span class="p">$ </span><span class="cmd">odflens report.odt --json</span></span><span class="ln"></span><span class="ln"><span class="dim"># one summary line per file</span></span><span class="ln"><span class="p">$ </span><span class="cmd">odflens report.odt --quiet</span></span><span class="ln"></span><span class="ln"><span class="dim"># SARIF for GitHub code scanning</span></span><span class="ln"><span class="p">$ </span><span class="cmd">odflens report.odt --sarif odflens.sarif</span></span><span class="ln"></span><span class="ln"><span class="dim"># choose when the exit code becomes non-zero</span></span><span class="ln"><span class="p">$ </span><span class="cmd">odflens report.odt --fail-on warning</span></span></pre>
+        </div>
+
+        <h2>Exit codes</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>The exit code is the CI gate.</caption>
+            <thead>
+              <tr><th scope="col">Code</th><th scope="col">Meaning</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>0</code></td><td>No findings at or above <code>--fail-on</code>.</td></tr>
+              <tr><td><code>1</code></td><td>Findings at or above <code>--fail-on</code>.</td></tr>
+              <tr><td><code>2</code></td><td>Invalid usage, an empty <code>--dir</code>, or a document that cannot be read or parsed as ODF.</td></tr>
+              <tr><td><code>3</code></td><td>An input file or an output report could not be read or written.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><code>--fail-on</code> affects only the exit code. Every issue is still reported and included in SARIF output.</p>
+
+        <h2>JSON output</h2>
+        <p>With <code>--json</code>, odflens prints a single array of results. Field order is stable, so a diff means a real change.</p>
+        <pre class="code"><code>[
+  {
+    "file": "bad.ods",
+    "kind": "ods",
+    "counts": { "error": 2, "warning": 0, "info": 0 },
+    "issues": [
+      {
+        "code": "ODF-LANG-001",
+        "severity": "error",
+        "wcag": "3.1.1",
+        "location": "bad.ods",
+        "message": "Document does not declare a language (dc:language or xml:lang / fo:language)."
+      },
+      {
+        "code": "ODF-TITLE-002",
+        "severity": "error",
+        "wcag": null,
+        "location": "bad.ods",
+        "message": "Document metadata has no non-empty dc:title."
+      }
+    ]
+  }
+]</code></pre>
+
+        <h2>Library</h2>
+        <p>The same rules power the CLI and the library. Call <code>audit(bytes, name)</code> directly from TypeScript.</p>
+        <pre class="code"><code>import { audit, toSarif } from "odflens";
+
+const result = audit(bytes, "report.odt");
+// { file, kind: "odt", issues, counts, fatal? }
+
+const sarif = toSarif(result, "odflens", "0.2.0");</code></pre>
+
+        <div class="docs__foot">
+          <a href="rules.html">← Rules</a>
+          <a href="ci.html">CI →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <circle cx="14" cy="14" r="8.4"></circle>
+            <line x1="20.4" y1="20.4" x2="27.5" y2="27.5"></line>
+            <circle cx="14" cy="14" r="3" style="fill:currentColor;stroke:none"></circle>
+          </svg>
+        </span>
+        <div>
+          <p>odflens</p>
+          <p class="muted">Offline accessibility audit for OpenDocument files (ODT / ODS / ODP).</p>
+        </div>
+      </div>
+
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="The Lens suite">
+        <h2>The Lens suite</h2>
+        <ul>
+          <li><a href="https://booklens-srivtx.vercel.app">booklens</a></li>
+          <li><a href="https://officelens-srivtx.vercel.app">officelens</a></li>
+          <li><a href="https://iconlens-srivtx.vercel.app">iconlens</a></li>
+          <li><a href="https://waxseal-srivtx.vercel.app">waxseal</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://odflens-srivtx.vercel.app">Live site</a></li>
+          <li><a href="https://github.com/srivtx/odflens">Repository</a></li>
+          <li><a href="https://github.com/srivtx/odflens/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/odflens/issues">Issues</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__meta">
+      <p>by svx · MIT licensed. Part of <a href="https://lenses-srivtx.vercel.app">Lenses</a> — offline accessibility and integrity tools.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

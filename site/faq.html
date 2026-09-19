@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ — odflens</title>
+<meta name="description" content="odflens scope, limitations, and how it compares to AccessODF, openxml-audit, and the other ODF tooling.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="FAQ — odflens">
+<meta property="og:description" content="odflens scope, limitations, and how it compares to other ODF tooling.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://odflens-srivtx.vercel.app/faq.html">
+<meta property="og:image" content="https://odflens-srivtx.vercel.app/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FAQ — odflens">
+<meta name="twitter:description" content="odflens scope, limitations, and how it compares to other ODF tooling.">
+<meta name="twitter:image" content="https://odflens-srivtx.vercel.app/assets/og.png">
+<link rel="canonical" href="https://odflens-srivtx.vercel.app/faq.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c3aed'/%3E%3Ccircle cx='14' cy='14' r='6.4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M19 19l6 6' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("odflens-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="odflens home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 32 32" focusable="false">
+          <circle cx="14" cy="14" r="8.4"></circle>
+          <line x1="20.4" y1="20.4" x2="27.5" y2="27.5"></line>
+          <circle cx="14" cy="14" r="3" style="fill:currentColor;stroke:none"></circle>
+        </svg>
+      </span>
+      <span class="brand__name">odflens</span>
+      <span class="brand__tag">OpenDocument accessibility audit</span>
+    </a>
+
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="index.html#playground">Playground</a>
+      <a href="https://github.com/srivtx/odflens">GitHub</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <div class="docs">
+      <nav class="docs__nav" aria-label="Documentation">
+        <h2>odflens</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html" aria-current="page">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <article class="docs__body">
+        <div class="docs__head">
+          <p class="eyebrow">Reference</p>
+          <h1>FAQ</h1>
+          <p>Scope, limits, and where odflens fits next to the tools you already use.</p>
+        </div>
+
+        <h2>Questions</h2>
+        <div class="faq">
+          <details>
+            <summary>Does it need LibreOffice or Java?</summary>
+            <div class="faq__body"><p>No. odflens is pure TypeScript: it unzips the package with fflate and parses the XML directly, so it runs headless on any machine that has Bun, including CI containers without an office suite.</p></div>
+          </details>
+          <details>
+            <summary>Are my documents uploaded anywhere?</summary>
+            <div class="faq__body"><p>No. There is no network code at all. The CLI parses files locally, and the browser playground uses the same bundle in-page, so nothing leaves your machine.</p></div>
+          </details>
+          <details>
+            <summary>Which formats are covered?</summary>
+            <div class="faq__body"><p>ODT (text), ODS (spreadsheet), and ODP (presentation). Kind detection reads the package <code>mimetype</code> and falls back to the body element. Language, title, alt-text, link-text, and remote-image checks run for all three; the heading-outline and table-header checks run for ODT, where they apply.</p></div>
+          </details>
+          <details>
+            <summary>How does it fit into CI?</summary>
+            <div class="faq__body"><p>Run <code>odflens --dir public/docs --quiet</code> as a gate, or emit SARIF with <code>--sarif</code> and upload it with <code>github/codeql-action/upload-sarif</code>. <code>--fail-on warning|info|none</code> controls the exit threshold.</p></div>
+          </details>
+          <details>
+            <summary>Why not just use AccessODF?</summary>
+            <div class="faq__body"><p>AccessODF is a LibreOffice GUI extension in Java, at 0.1.0 Beta, last filed in 2011. It needs a desktop suite and cannot run headless, which makes it unusable as an automated gate.</p></div>
+          </details>
+          <details>
+            <summary>What do the exit codes mean?</summary>
+            <div class="faq__body"><p><code>0</code> means no findings at or above <code>--fail-on</code>; <code>1</code> means there are. <code>2</code> is invalid usage or a document that cannot be read or parsed as ODF (reported as an error-level <code>ODF-000</code>). <code>3</code> is a file or report that could not be read or written.</p></div>
+          </details>
+        </div>
+
+        <h2>Limitations</h2>
+        <div class="callout" role="note">
+          <h3>Static XML analysis</h3>
+          <p>odflens is static XML analysis. It does not render or convert the document, so it cannot judge visual presentation or colour contrast. It reads the ODF package directly and matches element local names, so it does not validate against the full ODF schema. Remote images are flagged, not fetched, and there is no network code. Embedded foreign content is out of scope.</p>
+        </div>
+
+        <h2>How it compares</h2>
+        <div class="deflist">
+          <div class="defrow">
+            <dt class="defrow__term">LibreOffice / AccessODF</dt>
+            <dd class="defrow__def">The only ODF accessibility checker with a working release. It is a LibreOffice GUI extension written in Java, at version 0.1.0 Beta, with its last file dated 2011-11-08. It needs a desktop office suite and cannot run headless. <a href="https://accessodf.sourceforge.net/">accessodf.sourceforge.net</a></dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term">ODFBetter / ODF_Accessibility_Tester</dt>
+            <dd class="defrow__def">Both are abandoned, with no maintained release and no way to run them in a CI pipeline.</dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term">openxml-audit</dt>
+            <dd class="defrow__def">Validates OpenDocument conformance only, not accessibility. <a href="https://github.com/BramAlkema/openxml-audit">github.com/BramAlkema/openxml-audit</a></dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term">OOXML tooling</dt>
+            <dd class="defrow__def">office-accessibility-checker, readrite, and filecap cover OOXML and XLSX rather than ODF. None of them opens an <code>.odt</code>, <code>.ods</code>, or <code>.odp</code> package.</dd>
+          </div>
+        </div>
+
+        <div class="docs__foot">
+          <a href="ci.html">← CI</a>
+          <a href="index.html">Overview →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <circle cx="14" cy="14" r="8.4"></circle>
+            <line x1="20.4" y1="20.4" x2="27.5" y2="27.5"></line>
+            <circle cx="14" cy="14" r="3" style="fill:currentColor;stroke:none"></circle>
+          </svg>
+        </span>
+        <div>
+          <p>odflens</p>
+          <p class="muted">Offline accessibility audit for OpenDocument files (ODT / ODS / ODP).</p>
+        </div>
+      </div>
+
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="The Lens suite">
+        <h2>The Lens suite</h2>
+        <ul>
+          <li><a href="https://booklens-srivtx.vercel.app">booklens</a></li>
+          <li><a href="https://officelens-srivtx.vercel.app">officelens</a></li>
+          <li><a href="https://iconlens-srivtx.vercel.app">iconlens</a></li>
+          <li><a href="https://waxseal-srivtx.vercel.app">waxseal</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://odflens-srivtx.vercel.app">Live site</a></li>
+          <li><a href="https://github.com/srivtx/odflens">Repository</a></li>
+          <li><a href="https://github.com/srivtx/odflens/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/odflens/issues">Issues</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__meta">
+      <p>by svx · MIT licensed. Part of <a href="https://lenses-srivtx.vercel.app">Lenses</a> — offline accessibility and integrity tools.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>
