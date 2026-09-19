@@ -1,0 +1,32 @@
+{
+  "name": "odf-a11y",
+  "version": "0.1.0",
+  "description": "Offline, cross-platform accessibility auditor for OpenDocument (ODT/ODS/ODP) files.",
+  "type": "module",
+  "module": "src/index.ts",
+  "bin": {
+    "odf-a11y": "src/cli.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "make-fixtures": "bun src/fixtures.ts"
+  },
+  "license": "MIT",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "devDependencies": {
+    "@types/bun": "^1.4.2"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.11.1",
+    "fflate": "0.8.2"
+  }
+}
