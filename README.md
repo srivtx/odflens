@@ -106,6 +106,50 @@ rules read the same regardless of the prefix LibreOffice chose.
   run: odflens --dir public/docs --quiet
 ```
 
+By default `odflens` exits `1` on error-severity issues only. Use
+`--fail-on warning|info|none` to change the gate threshold.
+
+## SARIF and code scanning
+
+`odflens` can emit [SARIF 2.1.0](https://json.schemastore.org/sarif-2.1.0.json) so
+results show up as annotations in GitHub code scanning, VS Code, and any other
+SARIF-aware viewer:
+
+```bash
+odflens --dir public/docs --sarif odflens.sarif
+```
+
+Each issue becomes a result with `ruleId` set to the ODF rule code (for example
+`ODF-LANG-001`), a `level` mapped from its severity (`error`/`warning`/`note`),
+a location pointing at the source file, and accessibility tags. The rules array
+is built from the distinct codes found.
+
+```yaml
+- name: Audit ODF documents
+  run: odflens --dir public/docs --sarif odflens.sarif
+
+- name: Upload SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: odflens.sarif
+```
+
+Use `--fail-on` to tune when the job itself fails (`error` by default):
+
+```bash
+odflens --dir public/docs --sarif odflens.sarif --fail-on warning
+```
+
+The same output is available from the library:
+
+```ts
+import { audit, toSarif, writeSarif } from "odflens";
+
+const result = audit(bytes, "report.odt");
+const sarif = toSarif(result, "odflens", "0.1.0");
+await writeSarif("odflens.sarif", [result], "odflens", "0.1.0");
+```
+
 ## Testing
 
 | Gate | Result |

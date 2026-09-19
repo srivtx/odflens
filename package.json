@@ -4,15 +4,46 @@
   "description": "Offline OpenDocument (ODT/ODS/ODP) accessibility auditor. CI-friendly, no LibreOffice, no Java.",
   "type": "module",
   "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
   "bin": {
     "odflens": "src/cli.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srivtx/odflens.git"
+  },
+  "homepage": "https://github.com/srivtx/odflens#readme",
+  "bugs": {
+    "url": "https://github.com/srivtx/odflens/issues"
+  },
+  "keywords": [
+    "accessibility",
+    "a11y",
+    "opendocument",
+    "odt",
+    "ods",
+    "odp",
+    "wcag",
+    "en-301-549",
+    "sarif",
+    "cli",
+    "bun"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "make-fixtures": "bun src/fixtures.ts"
   },
   "license": "MIT",
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "src",
     "README.md",
