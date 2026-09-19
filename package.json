@@ -15,7 +15,7 @@
     "type": "git",
     "url": "git+https://github.com/srivtx/odflens.git"
   },
-  "homepage": "https://github.com/srivtx/odflens#readme",
+  "homepage": "https://lens-site-srivtx.vercel.app/odflens.html",
   "bugs": {
     "url": "https://github.com/srivtx/odflens/issues"
   },
