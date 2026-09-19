@@ -3,7 +3,7 @@ import { audit } from "../src/audit";
 import { makeBadOdt, makeBadOds, makeGoodOdt } from "../src/fixtures";
 import { formatText } from "../src/report";
 
-describe("odf-a11y fixtures", () => {
+describe("odflens fixtures", () => {
   test("bad odt reports errors", () => {
     expect(audit(makeBadOdt(), "bad.odt").counts.error).toBeGreaterThan(0);
   });

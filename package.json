@@ -1,11 +1,11 @@
 {
-  "name": "odf-a11y",
+  "name": "odflens",
   "version": "0.1.0",
-  "description": "Offline, cross-platform accessibility auditor for OpenDocument (ODT/ODS/ODP) files.",
+  "description": "Offline OpenDocument (ODT/ODS/ODP) accessibility auditor. CI-friendly, no LibreOffice, no Java.",
   "type": "module",
   "module": "src/index.ts",
   "bin": {
-    "odf-a11y": "src/cli.ts"
+    "odflens": "src/cli.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

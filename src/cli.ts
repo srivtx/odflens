@@ -12,11 +12,11 @@ export interface Options {
   files: string[];
 }
 
-export const USAGE = `odf-a11y - offline accessibility auditor for OpenDocument files
+export const USAGE = `odflens - offline accessibility auditor for OpenDocument files
 
 Usage:
-  odf-a11y <file...> [--json] [--quiet]
-  odf-a11y --dir <path> [--json] [--quiet]
+  odflens <file...> [--json] [--quiet]
+  odflens --dir <path> [--json] [--quiet]
 
 Options:
   --dir <path>   Audit every .odt/.ods/.odp file in <path> (non-recursive, sorted)

@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
-- Initial release of `odf-a11y`.
+- Initial release of `odflens`.
 - `audit(data, file?)` static accessibility audit for OpenDocument (`.odt`, `.ods`,
   `.odp`) packages.
 - `openOdf` and `detectKind` helpers for reading and identifying ODF packages.
@@ -16,9 +16,9 @@ All notable changes to this project are documented here. The format is based on
   text, skipped heading outline levels, body text without headings, tables without
   header rows, raw-URL link text, and remotely hosted images.
 - `formatText` and `formatJson` reporters.
-- `odf-a11y` CLI with `--dir`, `--json`, and `--quiet` flags.
+- `odflens` CLI with `--dir`, `--json`, and `--quiet` flags.
 - `makeBadOdt` / `makeGoodOdt` / `makeBadOds` fixtures and a `writeFixturesTo(dir)`
   helper.
 - GitHub Actions CI running typecheck, tests, and fixture CLI checks.
 
-[0.1.0]: https://github.com/example/odf-a11y/releases/tag/v0.1.0
+[0.1.0]: https://github.com/example/odflens/releases/tag/v0.1.0

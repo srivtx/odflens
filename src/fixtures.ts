@@ -53,7 +53,7 @@ function meta(title?: string): string {
   return (
     XML_HEADER +
     `<office:document-meta ${META_NS} office:version="1.2">` +
-    `<office:meta><meta:generator>odf-a11y fixtures</meta:generator>${dcTitle}</office:meta>` +
+    `<office:meta><meta:generator>odflens fixtures</meta:generator>${dcTitle}</office:meta>` +
     "</office:document-meta>"
   );
 }
