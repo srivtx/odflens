@@ -1,0 +1,18 @@
+# odflens
+
+> Offline accessibility audit for OpenDocument files (ODT, ODS, ODP).
+
+odflens unzips an `.odt`, `.ods`, or `.odp` package, parses its XML, and reports the structural failures that break accessibility: language, titles, alt text, headings, tables, and links. Rules are gated by format, so a spreadsheet or presentation is not judged by text-document rules. It also ships a typed library and a browser playground that audits files locally.
+
+It runs entirely offline, with no network calls, no telemetry, no LibreOffice, and no Java. Output is human-readable text, a stable JSON array, and SARIF 2.1.0 for code scanning. Exit codes are `0` (no findings at or above `--fail-on`), `1` (findings), `2` (invalid usage, an empty `--dir`, or a document that cannot be read as ODF), and `3` (I/O error).
+
+## Docs
+- [Overview](https://odflens-srivtx.vercel.app/): Audit OpenDocument files (ODT, ODS, ODP), with an in-browser playground.
+- [Rules](https://odflens-srivtx.vercel.app/rules): The nine rule codes and how rules are scoped to ODT, ODS, or ODP.
+- [Usage](https://odflens-srivtx.vercel.app/usage): Install, CLI flags, exit codes, JSON output, and the TypeScript library API.
+- [CI](https://odflens-srivtx.vercel.app/ci): SARIF 2.1.0 output for GitHub code scanning and an exit-code gate for pull requests.
+- [FAQ](https://odflens-srivtx.vercel.app/faq): Scope, limitations, and comparisons to AccessODF, openxml-audit, and the other ODF tooling.
+
+## Optional
+- [Source](https://github.com/srivtx/odflens): TypeScript implementation, tests, and issue tracker.
+- [Install script](https://raw.githubusercontent.com/srivtx/odflens/main/install.sh): One-line install of the `odflens` binary.
