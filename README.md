@@ -16,7 +16,7 @@
 
 ---
 
-**Live site:** [odflens](https://lens-site-srivtx.vercel.app/odflens.html)  ·  **Playground:** [https://lens-site-srivtx.vercel.app/playground](https://lens-site-srivtx.vercel.app/playground)  ·  **Source:** [github.com/srivtx/odflens](https://github.com/srivtx/odflens)
+**Live site:** [odflens](https://odflens-srivtx.vercel.app)  ·  **Playground:** [https://odflens-srivtx.vercel.app/#playground](https://odflens-srivtx.vercel.app/#playground)  ·  **Source:** [github.com/srivtx/odflens](https://github.com/srivtx/odflens)
 
 ## Website
 
