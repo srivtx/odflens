@@ -16,9 +16,9 @@
 
 ---
 
-**Live site:** [odflens](https://odflens-srivtx.vercel.app)  ·  **Playground:** [https://odflens-srivtx.vercel.app/#playground](https://odflens-srivtx.vercel.app/#playground)  ·  **Source:** [github.com/srivtx/odflens](https://github.com/srivtx/odflens)
+**Live site:** [odflens](https://srivtx.github.io/odflens)  ·  **Playground:** [https://srivtx.github.io/odflens/#playground](https://srivtx.github.io/odflens/#playground)  ·  **Source:** [github.com/srivtx/odflens](https://github.com/srivtx/odflens)
 
-**Docs:** [Rules](https://odflens-srivtx.vercel.app/rules)  ·  [Usage](https://odflens-srivtx.vercel.app/usage)  ·  [CI](https://odflens-srivtx.vercel.app/ci)  ·  [FAQ](https://odflens-srivtx.vercel.app/faq)
+**Docs:** [Rules](https://srivtx.github.io/odflens/rules)  ·  [Usage](https://srivtx.github.io/odflens/usage)  ·  [CI](https://srivtx.github.io/odflens/ci)  ·  [FAQ](https://srivtx.github.io/odflens/faq)
 
 ## Website
 
@@ -26,7 +26,7 @@ Product site with an embedded, fully client-side playground: a real `.odt` /
 `.ods` / `.odp` file is unzipped and audited in the browser with the same rule
 engine as the CLI. Nothing is uploaded.
 
-**Live:** [https://odflens-srivtx.vercel.app](https://odflens-srivtx.vercel.app)
+**Live:** [https://srivtx.github.io/odflens](https://srivtx.github.io/odflens)
 
 Local preview:
 
@@ -284,7 +284,7 @@ Every tool emits stable JSON with `--json` and SARIF 2.1.0, with a documented
 exit-code scheme, so an agent can read findings without scraping a screen.
 
 - **Docs index:** the site serves a machine-readable index at
-  [odflens-srivtx.vercel.app/llms.txt](https://odflens-srivtx.vercel.app/llms.txt).
+  [srivtx.github.io/odflens/llms.txt](https://srivtx.github.io/odflens/llms.txt).
 - **MCP server:** [lenses-mcp](https://github.com/srivtx/lenses-mcp) exposes all
   five tools over stdio (audit for each format, plus `booklens_fix`,
   `waxseal_seal`, `waxseal_verify`, `waxseal_inspect`).

@@ -22,7 +22,7 @@
     "odflens": "src/cli.ts"
   },
   "repository": "https://github.com/srivtx/odflens",
-  "homepage": "https://odflens-srivtx.vercel.app",
+  "homepage": "https://srivtx.github.io/odflens",
   "bugs": {
     "url": "https://github.com/srivtx/odflens/issues"
   },
